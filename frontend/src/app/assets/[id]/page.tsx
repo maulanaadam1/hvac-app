@@ -1,4 +1,4 @@
-import { ArrowLeft, Edit, MoreVertical, History, Thermometer, Wind, Zap, Droplets, Activity, ChevronRight, Settings2 } from "lucide-react";
+import { ArrowLeft, Edit, MoreVertical, History, Thermometer, Wind, Zap, Droplets, Activity, ChevronRight, Settings2, Box } from "lucide-react";
 import Link from "next/link";
 
 export default function AssetDetailPage({ params }: { params: { id: string } }) {
