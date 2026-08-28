@@ -18,7 +18,7 @@ FROM node:18-alpine AS runner
 
 WORKDIR /app
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 # Only copy public folder if you have one, currently commented out to prevent error
 # COPY --from=builder /app/public ./public
