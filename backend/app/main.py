@@ -3,11 +3,38 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.api import assets, users, roles, permissions, auth
+from app.core.database import Base, engine, SessionLocal
+
+# Import all models to ensure they are registered before create_all
+from app.models.user import User
+from app.models.equipment import Equipment
+from app.models.location import Location
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
+
+@app.on_event("startup")
+def startup_event():
+    # 1. Automatically create all tables in PostgreSQL
+    Base.metadata.create_all(bind=engine)
+    
+    # 2. Check if admin exists, if not, seed the database
+    db = SessionLocal()
+    try:
+        admin_user = db.query(User).filter(User.username == settings.FIRST_SUPERUSER).first()
+        if not admin_user:
+            print("Database is empty. Seeding initial data...")
+            import sys
+            import os
+            sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            from scripts.seed_db import seed_db
+            seed_db()
+    except Exception as e:
+        print(f"Auto-seed failed: {e}")
+    finally:
+        db.close()
 
 # Set all CORS enabled origins
 app.add_middleware(
