@@ -79,7 +79,7 @@ export default function RolesPermissionsPage() {
   const fetchRoles = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/roles/");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/roles/");
       if (res.ok) {
         const data = await res.json();
         setRoles(data);
@@ -94,7 +94,7 @@ export default function RolesPermissionsPage() {
   const fetchPermissions = async () => {
     setIsPermsLoading(true);
     try {
-      const res = await fetch("${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/permissions/");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/permissions/");
       if (res.ok) {
         const data = await res.json();
         setPermissions(data);

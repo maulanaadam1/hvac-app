@@ -57,7 +57,7 @@ export default function CreatePermissionGroupPage() {
     };
     
     try {
-      const res = await fetch("${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/permissions/", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/permissions/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)

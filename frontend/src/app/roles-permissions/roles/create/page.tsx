@@ -45,7 +45,7 @@ export default function CreateRolePage() {
   const fetchPermissions = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/permissions/");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/permissions/");
       if (res.ok) {
         const data = await res.json();
         setPermissions(data);
@@ -160,7 +160,7 @@ export default function CreateRolePage() {
     };
     
     try {
-      const res = await fetch("${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/roles/", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/roles/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
