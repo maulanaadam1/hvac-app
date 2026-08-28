@@ -36,11 +36,19 @@ def startup_event():
     finally:
         db.close()
 
+# Clean up origins by stripping spaces and quotes
+origins = []
+for origin in settings.BACKEND_CORS_ORIGINS.split(","):
+    clean_origin = origin.strip().strip('"').strip("'")
+    if clean_origin:
+        origins.append(clean_origin)
+
+# If it's empty or we want to be safe, add "*" or allow the specific origin
 # Set all CORS enabled origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[origin.strip() for origin in settings.BACKEND_CORS_ORIGINS.split(",")],
-    allow_credentials=True,
+    allow_origins=["*"], # Allow all origins temporarily to fix CORS block
+    allow_credentials=False, # Must be False if allow_origins=["*"]
     allow_methods=["*"],
     allow_headers=["*"],
 )
