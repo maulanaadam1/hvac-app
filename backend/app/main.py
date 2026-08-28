@@ -3,7 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.api import assets, users, roles, permissions, auth
-from app.core.database import Base, engine, SessionLocal
+from app.core.database import engine, SessionLocal
+from app.models.base import Base
 
 # Import all models to ensure they are registered before create_all
 from app.models.user import User
