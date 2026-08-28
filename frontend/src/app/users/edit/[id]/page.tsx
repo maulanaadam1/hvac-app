@@ -36,7 +36,7 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
 
   const fetchUser = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/users/${userId}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/users/${userId}`);
       if (!res.ok) throw new Error("Failed to fetch user data");
       
       const data = await res.json();
@@ -143,7 +143,7 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
 
     try {
       setIsLoading(true);
-      const res = await fetch(`http://localhost:8000/api/v1/users/${userId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/users/${userId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)

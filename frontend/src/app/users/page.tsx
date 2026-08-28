@@ -50,7 +50,7 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/api/v1/users/");
+      const res = await fetch("${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/users/");
       const data = await res.json();
       setUsers(data);
     } catch (error) {
@@ -65,7 +65,7 @@ export default function UsersPage() {
     setSelectedUserId(userId);
     setIsDetailLoading(true);
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/users/${userId}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/users/${userId}`);
       const data = await res.json();
       setUserDetail(data);
     } catch (error) {
@@ -90,7 +90,7 @@ export default function UsersPage() {
     if (action === 'unlock') payload = { is_locked: false };
     
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/users/${userDetail.id}/status`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/users/${userDetail.id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -109,7 +109,7 @@ export default function UsersPage() {
     if (!confirm(`Are you sure you want to delete ${userDetail.name}? This action cannot be undone.`)) return;
     
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/users/${userDetail.id}`, { method: "DELETE" });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/users/${userDetail.id}`, { method: "DELETE" });
       if (res.ok) {
         closeDetail();
         fetchUsers();
