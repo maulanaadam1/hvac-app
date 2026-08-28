@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
         if self.DATABASE_URL:
+            # SQLAlchemy 1.4+ requires "postgresql://" instead of "postgres://"
+            if self.DATABASE_URL.startswith("postgres://"):
+                return self.DATABASE_URL.replace("postgres://", "postgresql://", 1)
             return self.DATABASE_URL
         # Fallback to PostgreSQL discrete variables if set
         if self.POSTGRES_SERVER != "localhost":
