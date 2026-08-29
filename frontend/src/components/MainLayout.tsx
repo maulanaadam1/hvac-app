@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
-import { Bell, Search, AlertCircle, User, LogOut } from "lucide-react";
+import { Bell, Search, AlertCircle, User, LogOut, Menu } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -12,7 +12,11 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const [mounted, setMounted] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [userData, setUserData] = useState<any>(null);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [automaticLogoutMinutes, setAutomaticLogoutMinutes] = useState(30);
+  const [isCheckingMaintenance, setIsCheckingMaintenance] = useState(true);
   const isLoginPage = pathname === "/login";
   
   const handleSignOut = () => {
@@ -38,9 +42,56 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         } catch (e) {}
       }
     }
+    
+    // Check maintenance mode and settings
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/settings/general`)
+      .then(res => res.json())
+      .then(data => {
+        setMaintenanceMode(data.maintenance_mode === true);
+        if (data.automatic_logout) {
+          setAutomaticLogoutMinutes(data.automatic_logout);
+        }
+        setIsCheckingMaintenance(false);
+      })
+      .catch(err => {
+        console.error("Failed to check settings", err);
+        setIsCheckingMaintenance(false);
+      });
   }, [pathname, isLoginPage, router]);
 
-  if (!mounted || (!isAuthenticated && !isLoginPage)) {
+  // Idle Timer Logic for Automatic Logout
+  useEffect(() => {
+    if (!isAuthenticated || isLoginPage || isCheckingMaintenance) return;
+
+    let idleTimer: NodeJS.Timeout;
+
+    const resetIdleTimer = () => {
+      clearTimeout(idleTimer);
+      // Set timer based on settings (convert minutes to ms)
+      idleTimer = setTimeout(() => {
+        alert("You have been automatically logged out due to inactivity.");
+        handleSignOut();
+      }, automaticLogoutMinutes * 60 * 1000);
+    };
+
+    // Initialize the timer
+    resetIdleTimer();
+
+    // Listen to user interactions to reset the timer
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    events.forEach(event => {
+      window.addEventListener(event, resetIdleTimer);
+    });
+
+    return () => {
+      clearTimeout(idleTimer);
+      events.forEach(event => {
+        window.removeEventListener(event, resetIdleTimer);
+      });
+    };
+  }, [isAuthenticated, isLoginPage, isCheckingMaintenance, automaticLogoutMinutes]);
+
+  if (!mounted || (!isAuthenticated && !isLoginPage) || isCheckingMaintenance) {
     return <div className="h-screen w-screen bg-gray-50 flex items-center justify-center">Loading...</div>;
   }
 
@@ -52,25 +103,52 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const userRole = userData?.roles?.[0] || "Administrator";
   const initials = userName.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase();
 
+  // If maintenance mode is ON and user is NOT a Super Admin, block access
+  if (maintenanceMode && userRole !== "Super Admin") {
+    return (
+      <div className="h-screen w-screen bg-white flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-24 h-24 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mb-6">
+          <AlertCircle size={48} />
+        </div>
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">System Under Maintenance</h1>
+        <p className="text-gray-500 max-w-md mb-8">
+          We are currently performing scheduled maintenance on the HVAC Management Platform. 
+          Please check back later. We apologize for the inconvenience.
+        </p>
+        <button onClick={handleSignOut} className="px-6 py-2.5 bg-gray-900 text-white font-bold rounded-lg hover:bg-gray-800 transition-colors">
+          Sign Out
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden text-gray-800 font-sans w-full">
       {/* Sidebar Component */}
-      <Sidebar />
+      <Sidebar isMobileOpen={isMobileSidebarOpen} onClose={() => setIsMobileSidebarOpen(false)} />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         
         {/* Header */}
-        <header className="h-16 bg-white border-b flex items-center justify-between px-6 shrink-0">
-          <div>
-            <h1 className="text-xl font-bold text-gray-800">
-              {pathname === "/" ? "Overview" : pathname.split("/")[1].replace("-", " ").replace(/\b\w/g, l => l.toUpperCase())}
-            </h1>
-            <p className="text-xs text-gray-500">Welcome back, {userName.split(" ")[0]}</p>
+        <header className="h-16 bg-white border-b flex items-center justify-between px-4 md:px-6 shrink-0">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setIsMobileSidebarOpen(true)}
+              className="p-1.5 -ml-1.5 lg:hidden text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
+            >
+              <Menu size={20} />
+            </button>
+            <div>
+              <h1 className="text-xl font-bold text-gray-800">
+                {pathname === "/" ? "Overview" : pathname.split("/")[1].replace("-", " ").replace(/\b\w/g, l => l.toUpperCase())}
+              </h1>
+              <p className="text-xs text-gray-500 hidden sm:block">Welcome back, {userName.split(" ")[0]}</p>
+            </div>
           </div>
           
-          <div className="flex items-center gap-6">
-            <div className="relative">
+          <div className="flex items-center gap-4 sm:gap-6">
+            <div className="relative hidden sm:block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input 
                 type="text" 

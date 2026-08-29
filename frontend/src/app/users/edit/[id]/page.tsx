@@ -14,6 +14,9 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [availableRoles, setAvailableRoles] = useState<{id: string, name: string}[]>([]);
+  const [selectedRoleDetails, setSelectedRoleDetails] = useState<any>(null);
+  const [isLoadingRole, setIsLoadingRole] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -31,8 +34,47 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
   });
 
   useEffect(() => {
+    if (formData.role_name && availableRoles.length > 0) {
+      const role = availableRoles.find(r => r.name === formData.role_name);
+      if (role) {
+        fetchRoleDetails(role.id);
+      }
+    } else {
+      setSelectedRoleDetails(null);
+    }
+  }, [formData.role_name, availableRoles]);
+
+  const fetchRoleDetails = async (roleId: string) => {
+    setIsLoadingRole(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/roles/${roleId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedRoleDetails(data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch role details", e);
+    } finally {
+      setIsLoadingRole(false);
+    }
+  };
+
+  useEffect(() => {
     fetchUser();
+    fetchRoles();
   }, []);
+
+  const fetchRoles = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/roles/`);
+      if (res.ok) {
+        const data = await res.json();
+        setAvailableRoles(data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch roles", e);
+    }
+  };
 
   const fetchUser = async () => {
     try {
@@ -364,13 +406,12 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
             <div className="mb-4">
               <div className="flex justify-between items-end mb-1.5">
                 <label className="block text-xs font-bold text-gray-700">Role <span className="text-red-500">*</span></label>
-                <a href="#" className="text-[10px] font-bold text-blue-600 hover:underline">View role details</a>
               </div>
               <select name="role_name" value={formData.role_name} onChange={handleChange} required className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm appearance-none cursor-pointer">
                 <option value="" disabled className="text-gray-400">Select a role</option>
-                <option value="Super Admin">Super Admin</option>
-                <option value="Facility Manager">Facility Manager</option>
-                <option value="Lead Technician">Lead Technician</option>
+                {availableRoles.map(r => (
+                  <option key={r.name} value={r.name}>{r.name}</option>
+                ))}
               </select>
             </div>
 
@@ -384,21 +425,41 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
             
             <h4 className="text-xs font-bold text-gray-800 mb-3">Permissions Preview</h4>
             <div className="border border-gray-100 rounded-lg overflow-hidden mb-4">
-              <div className="flex items-center justify-between p-3 border-b border-gray-50 bg-white">
-                <div className="flex items-center gap-3">
-                  <LayoutDashboard size={14} className="text-gray-400" />
-                  <div>
-                    <div className="text-xs font-bold text-gray-800">Dashboard</div>
-                    <div className="text-[10px] text-gray-400 font-medium mt-0.5">View dashboard and system overview</div>
-                  </div>
+              {isLoadingRole ? (
+                <div className="p-6 flex justify-center text-gray-400">
+                  <Loader2 size={20} className="animate-spin" />
                 </div>
-                <span className="px-2 py-0.5 bg-green-50 text-green-700 font-bold text-[10px] rounded">Allow</span>
-              </div>
-            </div>
+              ) : selectedRoleDetails ? (
+                selectedRoleDetails.modules.map((mod: any, idx: number) => {
+                  const hasAccessCount = mod.permissions.filter((p: any) => p.has_access).length;
+                  if (hasAccessCount === 0) return null;
+                  
+                  // Try to find a suitable icon based on module name
+                  let Icon = LayoutDashboard;
+                  if (mod.module.toLowerCase().includes('asset')) Icon = Package;
+                  else if (mod.module.toLowerCase().includes('work order')) Icon = Wrench;
+                  else if (mod.module.toLowerCase().includes('maintenance')) Icon = ClipboardList;
+                  else if (mod.module.toLowerCase().includes('report')) Icon = FileText;
 
-            <a href="#" className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:underline">
-              View all permissions (24) <ArrowRight size={12} />
-            </a>
+                  return (
+                    <div key={idx} className="flex items-center justify-between p-3 border-b border-gray-50 bg-white last:border-0">
+                      <div className="flex items-center gap-3">
+                        <Icon size={14} className="text-gray-400" />
+                        <div>
+                          <div className="text-xs font-bold text-gray-800">{mod.module}</div>
+                          <div className="text-[10px] text-gray-400 font-medium mt-0.5">{hasAccessCount} permissions granted</div>
+                        </div>
+                      </div>
+                      <span className="px-2 py-0.5 bg-green-50 text-green-700 font-bold text-[10px] rounded">Allow</span>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="p-6 text-center text-[11px] text-gray-500 font-medium bg-gray-50/50">
+                  Select a role to preview permissions
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Site / Scope Access */}

@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from app.core.database import get_db
-from app.models.user import User, Role, RolePermission, Permission
+from app.models.user import User, Role, RolePermission, Permission, ActivityLog
 
 router = APIRouter()
 
@@ -38,6 +38,20 @@ def login(username: str = Form(...), password: str = Form(...), db: Session = De
     if not user.is_active:
         raise HTTPException(status_code=403, detail="User account is disabled")
 
+    # Update last login time
+    user.last_login = datetime.utcnow()
+    
+    # Log activity
+    activity = ActivityLog(
+        user_id=user.id,
+        action="Logged In",
+        description="Successfully logged into the platform"
+    )
+    db.add(activity)
+    
+    db.commit()
+    db.refresh(user)
+
     # Get user permissions based on their roles
     permissions_set = set()
     roles = []
@@ -60,6 +74,9 @@ def login(username: str = Form(...), password: str = Form(...), db: Session = De
             "email": user.email,
             "full_name": user.full_name,
             "department": user.department,
+            "phone_number": user.phone_number,
+            "last_login": user.last_login.isoformat() if user.last_login else None,
+            "password_last_changed": user.password_last_changed.isoformat() if user.password_last_changed else None,
             "roles": roles,
             "permissions": list(permissions_set)
         }

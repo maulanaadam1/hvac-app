@@ -75,6 +75,48 @@ def seed_db():
         db.refresh(role_facility_manager)
         db.refresh(role_lead_tech)
 
+        # Create Permissions
+        from app.models.user import Permission
+        
+        perm_view_assets = Permission(module="Assets", action="View Assets", description="Can view all assets")
+        perm_create_assets = Permission(module="Assets", action="Create Assets", description="Can create new assets")
+        perm_edit_assets = Permission(module="Assets", action="Edit Assets", description="Can edit existing assets")
+        
+        perm_view_wo = Permission(module="Work Orders", action="View Work Orders", description="Can view work orders")
+        perm_create_wo = Permission(module="Work Orders", action="Create Work Orders", description="Can create new work orders")
+        perm_edit_wo = Permission(module="Work Orders", action="Edit Work Orders", description="Can edit work orders")
+        
+        perm_view_users = Permission(module="Users", action="View Users", description="Can view system users")
+        perm_manage_roles = Permission(module="Roles & Permissions", action="Manage Roles", description="Can manage roles and permissions")
+        
+        db.add_all([
+            perm_view_assets, perm_create_assets, perm_edit_assets, 
+            perm_view_wo, perm_create_wo, perm_edit_wo,
+            perm_view_users, perm_manage_roles
+        ])
+        db.commit()
+        
+        # Assign permissions to Roles
+        # Super Admin gets all
+        role_super_admin.permissions.extend([
+            perm_view_assets, perm_create_assets, perm_edit_assets,
+            perm_view_wo, perm_create_wo, perm_edit_wo,
+            perm_view_users, perm_manage_roles
+        ])
+        
+        # Facility Manager gets most except roles
+        role_facility_manager.permissions.extend([
+            perm_view_assets, perm_create_assets, perm_edit_assets,
+            perm_view_wo, perm_create_wo, perm_edit_wo,
+            perm_view_users
+        ])
+        
+        # Lead Tech gets only view/edit Work Orders and view Assets
+        role_lead_tech.permissions.extend([
+            perm_view_assets, perm_view_wo, perm_edit_wo
+        ])
+        db.commit()
+
         from app.core.config import settings
 
         # Create Users

@@ -1,7 +1,82 @@
-import { Settings, Building2, MapPin, Bell, Link as LinkIcon, Wrench, Package, ShieldCheck, DatabaseBackup, FileText, Monitor, ChevronRight, Edit, UploadCloud, Clock, Calendar, Globe, DollarSign, List, LogOut, AlertTriangle, CheckCircle2, ChevronDown, Save, RefreshCw, Cloud } from "lucide-react";
+"use client";
+
+import { useState, useEffect } from "react";
+import { Settings, Building2, MapPin, Bell, Link as LinkIcon, Wrench, Package, ShieldCheck, DatabaseBackup, FileText, Monitor, ChevronRight, Edit, UploadCloud, Clock, Calendar, Globe, DollarSign, List, LogOut, AlertTriangle, CheckCircle2, ChevronDown, Save, RefreshCw, Cloud, Activity } from "lucide-react";
 import Link from "next/link";
 
 export default function SettingsPage() {
+  const [activeTab, setActiveTab] = useState("general");
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [settings, setSettings] = useState({
+    system_name: "HVAC Management System",
+    timezone: "Asia/Jakarta",
+    date_format: "DD MMM YYYY",
+    time_format: "24-Hour",
+    language: "English",
+    currency: "IDR",
+    unit_system: "Metric",
+    items_per_page: 20,
+    week_starts_on: "Monday",
+    automatic_logout: 30,
+    maintenance_mode: false
+  });
+  const [editForm, setEditForm] = useState({...settings});
+
+  useEffect(() => {
+    // Fetch general settings on mount
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/settings/general`)
+      .then(res => res.json())
+      .then(data => {
+        setSettings(data);
+        setEditForm(data);
+      })
+      .catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "audit") {
+      setIsLoadingLogs(true);
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/users/activities/all`)
+        .then(res => res.json())
+        .then(data => {
+          setAuditLogs(Array.isArray(data) ? data : []);
+          setIsLoadingLogs(false);
+        })
+        .catch(err => {
+          console.error(err);
+          setIsLoadingLogs(false);
+        });
+    }
+  }, [activeTab]);
+
+  const handleEdit = () => {
+    setEditForm({...settings});
+    setIsEditing(true);
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/settings/general`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editForm)
+      });
+      if (res.ok) {
+        setSettings(editForm);
+        setIsEditing(false);
+      } else {
+        alert("Failed to save settings");
+      }
+    } catch (e) {
+      alert("Network error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
   return (
     <div className="flex flex-col h-full space-y-6 pb-12">
       
@@ -27,14 +102,14 @@ export default function SettingsPage() {
             <div className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Settings Menu</div>
             <nav className="space-y-1 px-2">
               
-              <a href="#" className="flex items-start gap-3 px-3 py-2.5 rounded-lg bg-blue-50 text-blue-700 relative">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600 rounded-l-lg"></div>
+              <button onClick={() => setActiveTab("general")} className={`w-full flex items-start gap-3 px-3 py-2.5 rounded-lg text-left transition-colors relative ${activeTab === "general" ? "bg-blue-50 text-blue-700" : "text-gray-600 hover:bg-gray-50"}`}>
+                {activeTab === "general" && <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600 rounded-l-lg"></div>}
                 <Settings size={18} className="mt-0.5 shrink-0" />
                 <div>
-                  <div className="text-sm font-bold">General</div>
-                  <div className="text-[10px] text-blue-500 font-medium">System name, logo, and basic settings</div>
+                  <div className={`text-sm font-bold ${activeTab === "general" ? "" : "text-gray-700"}`}>General</div>
+                  <div className={`text-[10px] font-medium ${activeTab === "general" ? "text-blue-500" : "text-gray-400"}`}>System name, logo, and basic settings</div>
                 </div>
-              </a>
+              </button>
 
               <a href="#" className="flex items-start gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
                 <Building2 size={18} className="mt-0.5 shrink-0" />
@@ -100,13 +175,14 @@ export default function SettingsPage() {
                 </div>
               </a>
 
-              <a href="#" className="flex items-start gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
+              <button onClick={() => setActiveTab("audit")} className={`w-full flex items-start gap-3 px-3 py-2.5 rounded-lg text-left transition-colors relative ${activeTab === "audit" ? "bg-blue-50 text-blue-700" : "text-gray-600 hover:bg-gray-50"}`}>
+                {activeTab === "audit" && <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600 rounded-l-lg"></div>}
                 <FileText size={18} className="mt-0.5 shrink-0" />
                 <div>
-                  <div className="text-sm font-bold text-gray-700">Audit Logs</div>
-                  <div className="text-[10px] text-gray-400 font-medium">System activity and audit logs</div>
+                  <div className={`text-sm font-bold ${activeTab === "audit" ? "" : "text-gray-700"}`}>Audit Logs</div>
+                  <div className={`text-[10px] font-medium ${activeTab === "audit" ? "text-blue-500" : "text-gray-400"}`}>System activity and audit logs</div>
                 </div>
-              </a>
+              </button>
 
               <a href="#" className="flex items-start gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
                 <Monitor size={18} className="mt-0.5 shrink-0" />
@@ -120,16 +196,23 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Middle Col (6/12) General Settings */}
+        {/* Middle Col (6/12) General Settings or Audit Logs */}
         <div className="lg:col-span-6 space-y-6">
           <div className="bg-white border border-gray-200 shadow-sm rounded-xl">
             
             <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="font-bold text-gray-800 text-lg">General Settings</h3>
-              <button className="flex items-center gap-1.5 px-3 py-1.5 border border-blue-200 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-50 transition-colors">
-                <Edit size={14}/> Edit Settings
-              </button>
+              <h3 className="font-bold text-gray-800 text-lg">
+                {activeTab === "general" ? "General Settings" : "System Audit Logs"}
+              </h3>
+              {activeTab === "general" && !isEditing && (
+                <button onClick={handleEdit} className="flex items-center gap-1.5 px-3 py-1.5 border border-blue-200 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-50 transition-colors">
+                  <Edit size={14}/> Edit Settings
+                </button>
+              )}
             </div>
+
+            {activeTab === "general" ? (
+              <>
 
             <div className="p-6 space-y-6">
               
@@ -142,8 +225,12 @@ export default function SettingsPage() {
                     <div className="text-[11px] text-gray-500 font-medium mt-0.5">The name of your HVAC management system.</div>
                   </div>
                 </div>
-                <div className="text-sm font-medium text-gray-800 sm:w-1/2">
-                  HVAC Management System
+                <div className="sm:w-1/2">
+                  {isEditing ? (
+                    <input type="text" value={editForm.system_name} onChange={e => setEditForm({...editForm, system_name: e.target.value})} className="w-full px-3 py-1.5 text-sm bg-white border border-gray-300 rounded focus:outline-none focus:border-blue-500" />
+                  ) : (
+                    <div className="text-sm font-medium text-gray-800">{settings.system_name}</div>
+                  )}
                 </div>
               </div>
 
@@ -180,8 +267,16 @@ export default function SettingsPage() {
                     <div className="text-[11px] text-gray-500 font-medium mt-0.5">Set the default timezone for the system.</div>
                   </div>
                 </div>
-                <div className="sm:w-1/2 flex items-center justify-between text-sm font-medium text-gray-800">
-                  (UTC+07:00) Asia/Jakarta <ChevronDown size={14} className="text-gray-400"/>
+                <div className="sm:w-1/2">
+                  {isEditing ? (
+                    <select value={editForm.timezone} onChange={e => setEditForm({...editForm, timezone: e.target.value})} className="w-full px-3 py-1.5 text-sm bg-white border border-gray-300 rounded focus:outline-none focus:border-blue-500">
+                      <option value="Asia/Jakarta">(UTC+07:00) Asia/Jakarta</option>
+                      <option value="UTC">UTC</option>
+                      <option value="America/New_York">(UTC-05:00) America/New_York</option>
+                    </select>
+                  ) : (
+                    <div className="text-sm font-medium text-gray-800">{settings.timezone}</div>
+                  )}
                 </div>
               </div>
 
@@ -194,8 +289,16 @@ export default function SettingsPage() {
                     <div className="text-[11px] text-gray-500 font-medium mt-0.5">Set the default date format.</div>
                   </div>
                 </div>
-                <div className="sm:w-1/2 flex items-center justify-between text-sm font-medium text-gray-800">
-                  DD MMM YYYY (24 Apr 2026) <ChevronDown size={14} className="text-gray-400"/>
+                <div className="sm:w-1/2">
+                  {isEditing ? (
+                    <select value={editForm.date_format} onChange={e => setEditForm({...editForm, date_format: e.target.value})} className="w-full px-3 py-1.5 text-sm bg-white border border-gray-300 rounded focus:outline-none focus:border-blue-500">
+                      <option value="DD MMM YYYY">DD MMM YYYY (24 Apr 2026)</option>
+                      <option value="YYYY-MM-DD">YYYY-MM-DD (2026-04-24)</option>
+                      <option value="MM/DD/YYYY">MM/DD/YYYY (04/24/2026)</option>
+                    </select>
+                  ) : (
+                    <div className="text-sm font-medium text-gray-800">{settings.date_format}</div>
+                  )}
                 </div>
               </div>
 
@@ -208,8 +311,15 @@ export default function SettingsPage() {
                     <div className="text-[11px] text-gray-500 font-medium mt-0.5">Set the default time format.</div>
                   </div>
                 </div>
-                <div className="sm:w-1/2 flex items-center justify-between text-sm font-medium text-gray-800">
-                  24-Hour (14:30) <ChevronDown size={14} className="text-gray-400"/>
+                <div className="sm:w-1/2">
+                  {isEditing ? (
+                    <select value={editForm.time_format} onChange={e => setEditForm({...editForm, time_format: e.target.value})} className="w-full px-3 py-1.5 text-sm bg-white border border-gray-300 rounded focus:outline-none focus:border-blue-500">
+                      <option value="24-Hour">24-Hour (14:30)</option>
+                      <option value="12-Hour">12-Hour (02:30 PM)</option>
+                    </select>
+                  ) : (
+                    <div className="text-sm font-medium text-gray-800">{settings.time_format}</div>
+                  )}
                 </div>
               </div>
 
@@ -222,8 +332,15 @@ export default function SettingsPage() {
                     <div className="text-[11px] text-gray-500 font-medium mt-0.5">Set the system default language.</div>
                   </div>
                 </div>
-                <div className="sm:w-1/2 flex items-center justify-between text-sm font-medium text-gray-800">
-                  English <ChevronDown size={14} className="text-gray-400"/>
+                <div className="sm:w-1/2">
+                  {isEditing ? (
+                    <select value={editForm.language} onChange={e => setEditForm({...editForm, language: e.target.value})} className="w-full px-3 py-1.5 text-sm bg-white border border-gray-300 rounded focus:outline-none focus:border-blue-500">
+                      <option value="English">English</option>
+                      <option value="Indonesian">Indonesian</option>
+                    </select>
+                  ) : (
+                    <div className="text-sm font-medium text-gray-800">{settings.language}</div>
+                  )}
                 </div>
               </div>
 
@@ -236,8 +353,16 @@ export default function SettingsPage() {
                     <div className="text-[11px] text-gray-500 font-medium mt-0.5">Set the default currency for the system.</div>
                   </div>
                 </div>
-                <div className="sm:w-1/2 flex items-center justify-between text-sm font-medium text-gray-800">
-                  IDR (Indonesian Rupiah) <ChevronDown size={14} className="text-gray-400"/>
+                <div className="sm:w-1/2">
+                  {isEditing ? (
+                    <select value={editForm.currency} onChange={e => setEditForm({...editForm, currency: e.target.value})} className="w-full px-3 py-1.5 text-sm bg-white border border-gray-300 rounded focus:outline-none focus:border-blue-500">
+                      <option value="IDR">IDR (Indonesian Rupiah)</option>
+                      <option value="USD">USD (US Dollar)</option>
+                      <option value="EUR">EUR (Euro)</option>
+                    </select>
+                  ) : (
+                    <div className="text-sm font-medium text-gray-800">{settings.currency}</div>
+                  )}
                 </div>
               </div>
 
@@ -250,8 +375,15 @@ export default function SettingsPage() {
                     <div className="text-[11px] text-gray-500 font-medium mt-0.5">Set preferred unit system for measurements.</div>
                   </div>
                 </div>
-                <div className="sm:w-1/2 flex items-center justify-between text-sm font-medium text-gray-800">
-                  Metric (°C, kW, m³/h, kPa) <ChevronDown size={14} className="text-gray-400"/>
+                <div className="sm:w-1/2">
+                  {isEditing ? (
+                    <select value={editForm.unit_system} onChange={e => setEditForm({...editForm, unit_system: e.target.value})} className="w-full px-3 py-1.5 text-sm bg-white border border-gray-300 rounded focus:outline-none focus:border-blue-500">
+                      <option value="Metric">Metric (°C, kW, m³/h, kPa)</option>
+                      <option value="Imperial">Imperial (°F, BTU/h, CFM, psi)</option>
+                    </select>
+                  ) : (
+                    <div className="text-sm font-medium text-gray-800">{settings.unit_system}</div>
+                  )}
                 </div>
               </div>
 
@@ -264,8 +396,17 @@ export default function SettingsPage() {
                     <div className="text-[11px] text-gray-500 font-medium mt-0.5">Set the default number of items per page.</div>
                   </div>
                 </div>
-                <div className="sm:w-1/2 flex items-center justify-between text-sm font-medium text-gray-800">
-                  20 <ChevronDown size={14} className="text-gray-400"/>
+                <div className="sm:w-1/2">
+                  {isEditing ? (
+                    <select value={editForm.items_per_page} onChange={e => setEditForm({...editForm, items_per_page: parseInt(e.target.value)})} className="w-full px-3 py-1.5 text-sm bg-white border border-gray-300 rounded focus:outline-none focus:border-blue-500">
+                      <option value={10}>10</option>
+                      <option value={20}>20</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                    </select>
+                  ) : (
+                    <div className="text-sm font-medium text-gray-800">{settings.items_per_page}</div>
+                  )}
                 </div>
               </div>
 
@@ -278,8 +419,15 @@ export default function SettingsPage() {
                     <div className="text-[11px] text-gray-500 font-medium mt-0.5">Set the first day of the week.</div>
                   </div>
                 </div>
-                <div className="sm:w-1/2 flex items-center justify-between text-sm font-medium text-gray-800">
-                  Monday <ChevronDown size={14} className="text-gray-400"/>
+                <div className="sm:w-1/2">
+                  {isEditing ? (
+                    <select value={editForm.week_starts_on} onChange={e => setEditForm({...editForm, week_starts_on: e.target.value})} className="w-full px-3 py-1.5 text-sm bg-white border border-gray-300 rounded focus:outline-none focus:border-blue-500">
+                      <option value="Monday">Monday</option>
+                      <option value="Sunday">Sunday</option>
+                    </select>
+                  ) : (
+                    <div className="text-sm font-medium text-gray-800">{settings.week_starts_on}</div>
+                  )}
                 </div>
               </div>
 
@@ -292,8 +440,17 @@ export default function SettingsPage() {
                     <div className="text-[11px] text-gray-500 font-medium mt-0.5">Automatically logout inactive users.</div>
                   </div>
                 </div>
-                <div className="sm:w-1/2 flex items-center justify-between text-sm font-medium text-gray-800">
-                  30 Minutes <ChevronDown size={14} className="text-gray-400"/>
+                <div className="sm:w-1/2">
+                  {isEditing ? (
+                    <select value={editForm.automatic_logout} onChange={e => setEditForm({...editForm, automatic_logout: parseInt(e.target.value)})} className="w-full px-3 py-1.5 text-sm bg-white border border-gray-300 rounded focus:outline-none focus:border-blue-500">
+                      <option value={15}>15 Minutes</option>
+                      <option value={30}>30 Minutes</option>
+                      <option value={60}>1 Hour</option>
+                      <option value={120}>2 Hours</option>
+                    </select>
+                  ) : (
+                    <div className="text-sm font-medium text-gray-800">{settings.automatic_logout} Minutes</div>
+                  )}
                 </div>
               </div>
 
@@ -306,23 +463,65 @@ export default function SettingsPage() {
                     <div className="text-[11px] text-gray-500 font-medium mt-0.5">Enable maintenance mode (system access limited).</div>
                   </div>
                 </div>
-                <div className="sm:w-1/2">
-                  <div className="w-10 h-5 bg-gray-200 rounded-full relative cursor-pointer">
-                    <div className="absolute left-1 top-1 bottom-1 w-3 bg-white rounded-full shadow-sm"></div>
-                  </div>
+                <div className="sm:w-1/2 flex items-center">
+                  <button 
+                    disabled={!isEditing}
+                    onClick={() => setEditForm({...editForm, maintenance_mode: !editForm.maintenance_mode})}
+                    className={`w-10 h-5 rounded-full relative transition-colors ${
+                      (isEditing ? editForm.maintenance_mode : settings.maintenance_mode) ? 'bg-blue-600' : 'bg-gray-200'
+                    } ${isEditing ? 'cursor-pointer' : 'opacity-80 cursor-default'}`}
+                  >
+                    <div className={`absolute top-1 bottom-1 w-3 bg-white rounded-full shadow-sm transition-transform ${
+                      (isEditing ? editForm.maintenance_mode : settings.maintenance_mode) ? 'left-6' : 'left-1'
+                    }`}></div>
+                  </button>
                 </div>
               </div>
 
             </div>
 
-            <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50 rounded-b-xl">
-              <button className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-colors">
-                Reset to Default
-              </button>
-              <button className="px-4 py-2 rounded-lg text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-colors">
-                Save Changes
-              </button>
-            </div>
+            {isEditing && (
+              <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50 rounded-b-xl">
+                <button onClick={() => setIsEditing(false)} disabled={isSaving} className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-colors">
+                  Cancel
+                </button>
+                <button onClick={handleSave} disabled={isSaving} className="px-4 py-2 rounded-lg text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2">
+                  {isSaving ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            )}
+            </>
+            ) : (
+              <div className="p-0">
+                {isLoadingLogs ? (
+                  <div className="flex justify-center p-12">
+                    <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : auditLogs.length > 0 ? (
+                  <div className="divide-y divide-gray-100">
+                    {auditLogs.map((log) => (
+                      <div key={log.id} className="p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex justify-between mb-1">
+                          <div className="font-bold text-gray-800 text-sm flex items-center gap-2">
+                            <Activity size={14} className="text-blue-500" />
+                            {log.action}
+                          </div>
+                          <div className="text-[10px] font-bold text-gray-400">
+                            {log.timestamp ? new Date(log.timestamp).toLocaleString() : 'Unknown'}
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-600 font-medium mb-1">{log.description}</div>
+                        <div className="text-[10px] text-gray-400 font-medium">Actor: <span className="font-bold text-gray-600">{log.user}</span></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-12 text-center text-sm font-medium text-gray-500">
+                    No activity logs found.
+                  </div>
+                )}
+              </div>
+            )}
             
           </div>
         </div>

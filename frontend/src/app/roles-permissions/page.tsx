@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Search, Plus, Users, ShieldCheck, MoreHorizontal, X, Shield, Download, Check, Settings, Package, Wrench, FileText, ChevronDown, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Edit, Loader2, Filter, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 
@@ -52,7 +53,9 @@ type DetailedPermission = {
 };
 
 export default function RolesPermissionsPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'roles' | 'permissions'>('roles');
+  const [activeDetailTab, setActiveDetailTab] = useState<'permissions' | 'users' | 'info'>('permissions');
   
   // Roles State
   const [roles, setRoles] = useState<RoleSummary[]>([]);
@@ -400,7 +403,16 @@ export default function RolesPermissionsPage() {
                           <td className="px-4 py-4 text-center font-bold text-gray-800">{row.permission_count}</td>
                           <td className="px-4 py-4 text-[11px] font-medium text-gray-500 max-w-xs leading-relaxed">{row.description}</td>
                           <td className="px-4 py-4 text-center">
-                            <button className="text-gray-400 hover:text-gray-800 p-1.5 rounded-md hover:bg-gray-100 border border-gray-200" onClick={(e) => e.stopPropagation()}><MoreHorizontal size={14}/></button>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(`/roles-permissions/roles/edit/${row.id}`);
+                              }}
+                              className="text-gray-400 hover:text-gray-800 p-1.5 rounded-md hover:bg-gray-100 border border-gray-200 inline-block" 
+                              title="Edit Role"
+                            >
+                              <MoreHorizontal size={14}/>
+                            </button>
                           </td>
                         </tr>
                       ))
@@ -582,71 +594,118 @@ export default function RolesPermissionsPage() {
                   {/* Tabs */}
                   <div className="px-6 border-b border-gray-200 shrink-0">
                     <nav className="flex space-x-6">
-                      <a href="#" className="border-b-2 border-blue-600 text-blue-600 py-3 px-1 text-xs font-bold">Permissions</a>
-                      <a href="#" className="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-3 px-1 text-xs font-bold">Users ({roleDetail.user_count})</a>
-                      <a href="#" className="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-3 px-1 text-xs font-bold">Role Info</a>
+                      <button onClick={() => setActiveDetailTab('permissions')} className={`border-b-2 py-3 px-1 text-xs font-bold transition-colors ${activeDetailTab === 'permissions' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>Permissions</button>
+                      <button onClick={() => setActiveDetailTab('users')} className={`border-b-2 py-3 px-1 text-xs font-bold transition-colors ${activeDetailTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>Users ({roleDetail.user_count})</button>
+                      <button onClick={() => setActiveDetailTab('info')} className={`border-b-2 py-3 px-1 text-xs font-bold transition-colors ${activeDetailTab === 'info' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>Role Info</button>
                     </nav>
                   </div>
 
                   <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
                     
-                    <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex gap-2 shrink-0">
-                      <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                        <input type="text" placeholder="Search permissions..." className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500"/>
-                      </div>
-                      <select className="bg-white border border-gray-200 shadow-sm text-gray-700 font-bold text-xs rounded-lg px-3 py-2 outline-none w-32"><option>All Modules</option></select>
-                    </div>
-
-                    <div className="p-4 space-y-4">
-                      {roleDetail.modules.map((mod, idx) => {
-                        const isExpanded = expandedModules[mod.module];
-                        const checkedCount = mod.permissions.filter(p => p.has_access).length;
-                        const totalCount = mod.permissions.length;
-                        const allChecked = checkedCount === totalCount && totalCount > 0;
-                        const someChecked = checkedCount > 0 && checkedCount < totalCount;
-
-                        return (
-                          <div key={idx} className="border border-gray-100 rounded-lg overflow-hidden">
-                            <div 
-                              onClick={() => toggleModule(mod.module)}
-                              className="bg-gray-50 px-4 py-3 flex items-center justify-between cursor-pointer border-b border-gray-100"
-                            >
-                              <div className="flex items-center gap-3">
-                                {isExpanded ? <ChevronDown size={16} className="text-gray-400"/> : <ChevronRight size={16} className="text-gray-400"/>}
-                                <div className={`w-4 h-4 rounded border flex items-center justify-center text-white ${allChecked ? 'border-blue-600 bg-blue-600' : someChecked ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
-                                  {allChecked && <Check size={12}/>}
-                                  {someChecked && <div className="w-2 h-0.5 bg-white rounded"></div>}
-                                </div>
-                                <span className="font-bold text-gray-800 text-xs">{mod.module}</span>
-                              </div>
-                              <span className="px-2 py-0.5 rounded bg-gray-200 text-gray-700 text-[10px] font-bold">{checkedCount}/{totalCount}</span>
-                            </div>
-                            
-                            {isExpanded && (
-                              <div className="px-4 py-2 space-y-1 bg-white">
-                                {mod.permissions.map((perm) => (
-                                  <div key={perm.id} className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
-                                    <div className={`w-4 h-4 rounded border flex items-center justify-center text-white mt-0.5 shrink-0 ${perm.has_access ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
-                                      {perm.has_access && <Check size={12}/>}
-                                    </div>
-                                    <div className="flex-1">
-                                      <div className={`text-xs font-bold ${perm.has_access ? 'text-gray-800' : 'text-gray-400'}`}>{perm.name}</div>
-                                      <div className="text-[10px] text-gray-400 font-medium">{perm.description}</div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
+                    {activeDetailTab === 'permissions' && (
+                      <>
+                        <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex gap-2 shrink-0">
+                          <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                            <input type="text" placeholder="Search permissions..." className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500"/>
                           </div>
-                        );
-                      })}
-                    </div>
+                          <select className="bg-white border border-gray-200 shadow-sm text-gray-700 font-bold text-xs rounded-lg px-3 py-2 outline-none w-32"><option>All Modules</option></select>
+                        </div>
+
+                        <div className="p-4 space-y-4">
+                          {roleDetail.modules.map((mod, idx) => {
+                            const isExpanded = expandedModules[mod.module];
+                            const checkedCount = mod.permissions.filter(p => p.has_access).length;
+                            const totalCount = mod.permissions.length;
+                            const allChecked = checkedCount === totalCount && totalCount > 0;
+                            const someChecked = checkedCount > 0 && checkedCount < totalCount;
+
+                            return (
+                              <div key={idx} className="border border-gray-100 rounded-lg overflow-hidden">
+                                <div 
+                                  onClick={() => toggleModule(mod.module)}
+                                  className="bg-gray-50 px-4 py-3 flex items-center justify-between cursor-pointer border-b border-gray-100"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    {isExpanded ? <ChevronDown size={16} className="text-gray-400"/> : <ChevronRight size={16} className="text-gray-400"/>}
+                                    <div className={`w-4 h-4 rounded border flex items-center justify-center text-white ${allChecked ? 'border-blue-600 bg-blue-600' : someChecked ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
+                                      {allChecked && <Check size={12}/>}
+                                      {someChecked && <div className="w-2 h-0.5 bg-white rounded"></div>}
+                                    </div>
+                                    <span className="font-bold text-gray-800 text-xs">{mod.module}</span>
+                                  </div>
+                                  <span className="px-2 py-0.5 rounded bg-gray-200 text-gray-700 text-[10px] font-bold">{checkedCount}/{totalCount}</span>
+                                </div>
+                                
+                                {isExpanded && (
+                                  <div className="px-4 py-2 space-y-1 bg-white">
+                                    {mod.permissions.map((perm) => (
+                                      <div key={perm.id} className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
+                                        <div className={`w-4 h-4 rounded border flex items-center justify-center text-white mt-0.5 shrink-0 ${perm.has_access ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
+                                          {perm.has_access && <Check size={12}/>}
+                                        </div>
+                                        <div className="flex-1">
+                                          <div className={`text-xs font-bold ${perm.has_access ? 'text-gray-800' : 'text-gray-400'}`}>{perm.name}</div>
+                                          <div className="text-[10px] text-gray-400 font-medium">{perm.description}</div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+
+                    {activeDetailTab === 'users' && (
+                      <div className="p-6">
+                        <div className="bg-gray-50 rounded-xl border border-gray-100 p-8 flex flex-col items-center justify-center text-center">
+                          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-blue-500 shadow-sm mb-3">
+                            <Users size={20} />
+                          </div>
+                          <h4 className="font-bold text-gray-800 text-sm mb-1">{roleDetail.user_count} Users Assigned</h4>
+                          <p className="text-[11px] text-gray-500 max-w-xs">There are {roleDetail.user_count} users currently assigned to this role. Manage them in the Users menu.</p>
+                          <Link href="/users" className="mt-4 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                            Manage Users
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+
+                    {activeDetailTab === 'info' && (
+                      <div className="p-6">
+                        <div className="space-y-4">
+                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Role Type</div>
+                            <div className="text-sm font-bold text-gray-800">{roleDetail.is_system ? 'System Role (Built-in)' : 'Custom Role'}</div>
+                            <div className="text-[11px] text-gray-500 mt-0.5">{roleDetail.is_system ? 'System roles cannot be deleted, but permissions can be modified.' : 'Custom roles created by administrators.'}</div>
+                          </div>
+                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Description</div>
+                            <div className="text-sm font-medium text-gray-700 leading-relaxed">{roleDetail.description || 'No description provided.'}</div>
+                          </div>
+                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 flex justify-between items-center">
+                            <div>
+                              <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Creation Date</div>
+                              <div className="text-sm font-bold text-gray-800">{roleDetail.created_at}</div>
+                            </div>
+                            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-400 shadow-sm border border-gray-100">
+                              <FileText size={16} />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Footer Action */}
                   <div className="p-4 border-t border-gray-100 bg-white shrink-0">
-                    <button className="w-full py-2.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                    <button 
+                      onClick={() => router.push(`/roles-permissions/roles/edit/${roleDetail.id}`)}
+                      className="w-full py-2.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                    >
                       <Edit size={14} /> Edit Role
                     </button>
                   </div>

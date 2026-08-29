@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from datetime import datetime
 
 from app.core.database import get_db
-from app.models.user import Role, Permission, RolePermission, User
+from app.models.user import Role, Permission, RolePermission, User, ActivityLog
 
 router = APIRouter()
 
@@ -37,10 +37,52 @@ def create_role(role_in: RoleCreate, db: Session = Depends(get_db)):
         perm = db.query(Permission).filter(Permission.id == pid).first()
         if perm:
             rp = RolePermission(role_id=new_role.id, permission_id=pid)
-            db.add(rp)
+            
+    # Log activity
+    admin = db.query(User).filter(User.username == "admin").first() or db.query(User).first()
+    if admin:
+        act = ActivityLog(user_id=admin.id, action="Created Role", description=f"Created new role '{new_role.name}'")
+        db.add(act)
             
     db.commit()
     return {"id": new_role.id, "message": "Role created successfully"}
+
+
+@router.put("/{role_id}")
+def update_role(role_id: str, role_in: RoleCreate, db: Session = Depends(get_db)):
+    """Update an existing role and its permissions."""
+    role = db.query(Role).filter(Role.id == role_id).first()
+    if not role:
+        raise HTTPException(status_code=404, detail="Role not found")
+        
+    # Check name conflict
+    existing = db.query(Role).filter(Role.name == role_in.name, Role.id != role_id).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Role name already exists")
+        
+    # Update base fields
+    role.name = role_in.name
+    role.description = role_in.description
+    role.is_system = role_in.is_system
+    
+    # Remove old permissions
+    db.query(RolePermission).filter(RolePermission.role_id == role.id).delete()
+    
+    # Add new permissions
+    for pid in role_in.permission_ids:
+        perm = db.query(Permission).filter(Permission.id == pid).first()
+        if perm:
+            rp = RolePermission(role_id=role.id, permission_id=pid)
+            db.add(rp)
+            
+    # Log activity
+    admin = db.query(User).filter(User.username == "admin").first() or db.query(User).first()
+    if admin:
+        act = ActivityLog(user_id=admin.id, action="Updated Role", description=f"Updated role '{role.name}'")
+        db.add(act)
+            
+    db.commit()
+    return {"message": "Role updated successfully"}
 
 
 @router.get("/")

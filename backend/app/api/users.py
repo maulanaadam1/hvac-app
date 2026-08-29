@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 
 from app.core.database import get_db
-from app.models.user import User, Role
+from app.models.user import User, Role, ActivityLog
 
 router = APIRouter()
 
@@ -23,6 +23,12 @@ class UserCreate(BaseModel):
     language: Optional[str] = "en"
     password: str
     role_name: str
+
+class UserProfileUpdate(BaseModel):
+    email: Optional[str] = None
+    phone_number: Optional[str] = None
+    department: Optional[str] = None
+    job_title: Optional[str] = None
 
 @router.post("/")
 def create_user(user_in: UserCreate, db: Session = Depends(get_db)):
@@ -55,6 +61,13 @@ def create_user(user_in: UserCreate, db: Session = Depends(get_db)):
     new_user.roles.append(role)
     
     db.add(new_user)
+    
+    # Log activity
+    admin = db.query(User).filter(User.username == "admin").first() or db.query(User).first()
+    if admin:
+        act = ActivityLog(user_id=admin.id, action="Created User", description=f"Created new user '{new_user.username}'")
+        db.add(act)
+        
     db.commit()
     db.refresh(new_user)
     
@@ -89,12 +102,55 @@ def update_user(user_id_string: str, user_in: UserCreate, db: Session = Depends(
     
     if user_in.password: # Only update password if provided
         user.password_hash = f"hashed_{user_in.password}"
+        user.password_last_changed = datetime.utcnow()
         
     user.roles = [role]
+    
+    # Log activity
+    activity = ActivityLog(
+        user_id=user.id,
+        action="Updated Profile",
+        description="User profile was updated"
+    )
+    db.add(activity)
     
     db.commit()
     db.refresh(user)
     return {"message": "User updated successfully"}
+
+@router.patch("/{user_id_string}/profile")
+def update_user_profile(user_id_string: str, profile_in: UserProfileUpdate, db: Session = Depends(get_db)):
+    user = db.query(User).filter(
+        (User.user_id_string == user_id_string) | (User.id == user_id_string)
+    ).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    if profile_in.email is not None:
+        existing_email = db.query(User).filter(User.email == profile_in.email, User.id != user.id).first()
+        if existing_email:
+            raise HTTPException(status_code=400, detail="Email already taken by another user")
+        user.email = profile_in.email
+        
+    if profile_in.phone_number is not None:
+        user.phone_number = profile_in.phone_number
+        
+    if profile_in.department is not None:
+        user.department = profile_in.department
+        
+    # user.job_title = profile_in.job_title # If job_title is in User model, otherwise ignore
+    
+    # Log activity for the specific user
+    act = ActivityLog(
+        user_id=user.id,
+        action="Updated Profile",
+        description=f"User {user.username} updated their profile"
+    )
+    db.add(act)
+        
+    db.commit()
+    db.refresh(user)
+    return {"message": "Profile updated successfully"}
 
 @router.get("/")
 def get_users(db: Session = Depends(get_db)):
@@ -178,10 +234,45 @@ def get_user_detail(user_id_string: str, db: Session = Depends(get_db)):
         "scopes": scopes,
         "status": status,
         "joined_date": user.created_at.strftime("%d %b %Y") if user.created_at else "Unknown",
-        "last_login": user.last_login.strftime("%d %b %Y %H:%M") if user.last_login else "Never",
-        "password_changed": user.password_last_changed.strftime("%d %b %Y %H:%M") if user.password_last_changed else "Unknown",
+        "last_login": user.last_login.isoformat() + "Z" if user.last_login else "Never",
+        "password_changed": user.password_last_changed.isoformat() + "Z" if user.password_last_changed else "Unknown",
         "two_factor_enabled": user.two_factor_enabled
     }
+
+@router.get("/activities/all")
+def get_all_activities(db: Session = Depends(get_db)):
+    """Get all activities across the system."""
+    activities = db.query(ActivityLog).join(User).order_by(ActivityLog.created_at.desc()).limit(50).all()
+    
+    return [
+        {
+            "id": a.id,
+            "action": a.action,
+            "description": a.description,
+            "timestamp": a.created_at.isoformat() + "Z" if a.created_at else None,
+            "user": a.user.full_name if a.user else "System"
+        } for a in activities
+    ]
+
+@router.get("/{user_id_string}/activities")
+def get_user_activities(user_id_string: str, db: Session = Depends(get_db)):
+    """Get recent activities for a specific user."""
+    user = db.query(User).filter(
+        (User.user_id_string == user_id_string) | (User.id == user_id_string)
+    ).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    activities = db.query(ActivityLog).filter(ActivityLog.user_id == user.id).order_by(ActivityLog.created_at.desc()).limit(10).all()
+    
+    return [
+        {
+            "id": a.id,
+            "action": a.action,
+            "description": a.description,
+            "timestamp": a.created_at.isoformat() + "Z" if a.created_at else None
+        } for a in activities
+    ]
 
 class UserStatusUpdate(BaseModel):
     is_active: Optional[bool] = None

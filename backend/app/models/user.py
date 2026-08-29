@@ -80,3 +80,15 @@ class UserScope(BaseModel):
     
     user: Mapped["User"] = relationship(back_populates="scopes")
     site: Mapped["Site"] = relationship()
+
+class ActivityLog(BaseModel):
+    __tablename__ = "activity_logs"
+
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    action: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(String(500))
+    ip_address: Mapped[Optional[str]] = mapped_column(String(50))
+    user_agent: Mapped[Optional[str]] = mapped_column(String(255))
+    
+    # Optional relationship
+    user: Mapped["User"] = relationship()
