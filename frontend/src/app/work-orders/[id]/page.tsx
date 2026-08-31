@@ -1,11 +1,12 @@
 "use client";
-import { ArrowLeft, Printer, Edit, MoreVertical, ChevronRight, CheckCircle2, Clock, Check, Plus, Trash2, ArrowRight, ArrowDownUp, GripVertical, Lightbulb, Package, Eye, XCircle, Info } from "lucide-react";
+import { ArrowLeft, Printer, Edit, MoreVertical, ChevronRight, CheckCircle2, Clock, Check, Plus, Trash2, ArrowRight, ArrowDownUp, GripVertical, Lightbulb, Package, Eye, XCircle, Info, Users, DollarSign, PieChart, Activity, Wrench, Settings, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
 export default function WorkOrderDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
   const [activeTab, setActiveTab] = useState("Tasks");
+  const [laborTab, setLaborTab] = useState("Activity");
   
   // Tasks State for Drag-and-Drop
   const [tasks, setTasks] = useState([
@@ -950,6 +951,786 @@ export default function WorkOrderDetailPage({ params }: { params: { id: string }
       )}
 
 
+      {activeTab === "Labor" && (
+        <div className="flex flex-col space-y-6">
+          {/* Sub-tabs */}
+          <div className="flex space-x-6 border-b border-gray-200 px-2">
+            <button 
+              onClick={() => setLaborTab('Activity')}
+              className={`pb-3 font-semibold text-sm border-b-2 ${laborTab === 'Activity' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+            >
+              By Activity
+            </button>
+            <button 
+              onClick={() => setLaborTab('Technician')}
+              className={`pb-3 font-semibold text-sm border-b-2 ${laborTab === 'Technician' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+            >
+              By Technician
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            
+            {/* Main Area */}
+            <div className="lg:col-span-3 space-y-6">
+              
+              <div className="bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden flex flex-col">
+                <div className="p-6 pb-0">
+                  <div className="flex justify-between items-center mb-6">
+                    <div>
+                      <h3 className="font-bold text-gray-800 text-lg">{laborTab === 'Activity' ? 'Labor by Activity' : 'Labor & Manpower'}</h3>
+                      <p className="text-sm text-gray-500 mt-1">{laborTab === 'Activity' ? 'Track labor hours and cost grouped by activities performed.' : 'Track manpower and labor hours for this work order.'}</p>
+                    </div>
+                    <div className="flex gap-3 items-center">
+                      {laborTab === 'Activity' && (
+                        <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 shadow-sm mr-2 bg-white">
+                          <MoreVertical size={16} className="rotate-90 text-gray-400 -mr-1" /> Group by: Activity <ChevronDown size={14} className="opacity-50 ml-1"/>
+                        </button>
+                      )}
+                      <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 shadow-sm transition-colors">
+                        <Plus size={16} /> Add Labor
+                      </button>
+                      <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 bg-white rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 shadow-sm transition-colors">
+                        <Clock size={16} /> Log Time
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Stats Cards */}
+                  {laborTab === 'Activity' ? (
+                    <div className="grid grid-cols-4 gap-4 mb-6">
+                      <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><Users size={20}/></div>
+                        <div>
+                          <div className="text-2xl font-black text-blue-600">5</div>
+                          <div className="text-xs font-bold text-gray-500 mt-0.5">Total Activities</div>
+                        </div>
+                      </div>
+                      <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><Clock size={20}/></div>
+                        <div>
+                          <div className="text-2xl font-black text-blue-600">14h 00m</div>
+                          <div className="text-xs font-bold text-gray-500 mt-0.5">Total Labor Hours</div>
+                        </div>
+                      </div>
+                      <div className="bg-white rounded-xl p-4 border border-green-100 shadow-sm flex items-center gap-4 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-green-50 rounded-bl-full -z-10"></div>
+                        <div className="w-12 h-12 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0"><DollarSign size={20}/></div>
+                        <div>
+                          <div className="text-2xl font-black text-green-700">$625.00</div>
+                          <div className="text-xs font-bold text-gray-500 mt-0.5">Total Labor Cost</div>
+                        </div>
+                      </div>
+                      <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center shrink-0"><PieChart size={20}/></div>
+                        <div>
+                          <div className="text-2xl font-black text-gray-800">89%</div>
+                          <div className="text-xs font-bold text-gray-500 mt-0.5">Labor Progress</div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-4 gap-4 mb-6">
+                      <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><Users size={20}/></div>
+                        <div>
+                          <div className="text-2xl font-black text-blue-600">3</div>
+                          <div className="text-xs font-bold text-gray-500 mt-0.5">Total Technicians</div>
+                        </div>
+                      </div>
+                      <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><Clock size={20}/></div>
+                        <div>
+                          <div className="text-2xl font-black text-blue-600">14h 00m</div>
+                          <div className="text-xs font-bold text-gray-500 mt-0.5">Total Labor Hours</div>
+                        </div>
+                      </div>
+                      <div className="bg-white rounded-xl p-4 border border-green-100 shadow-sm flex items-center gap-4 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-green-50 rounded-bl-full -z-10"></div>
+                        <div className="w-12 h-12 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0"><DollarSign size={20}/></div>
+                        <div>
+                          <div className="text-2xl font-black text-green-700">$625.00</div>
+                          <div className="text-xs font-bold text-gray-500 mt-0.5">Total Labor Cost</div>
+                        </div>
+                      </div>
+                      <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center shrink-0"><PieChart size={20}/></div>
+                        <div>
+                          <div className="text-2xl font-black text-gray-800">89%</div>
+                          <div className="text-xs font-bold text-gray-500 mt-0.5">Labor Progress</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Table View */}
+                  {laborTab === 'Activity' ? (
+                    <div className="overflow-x-auto mt-4 mb-8">
+                      <table className="w-full text-sm text-left">
+                        <thead className="text-[10px] text-gray-400 uppercase font-bold border-b border-gray-100">
+                          <tr>
+                            <th className="pb-3 px-4 w-12 text-center">#</th>
+                            <th className="pb-3 px-4">ACTIVITY</th>
+                            <th className="pb-3 px-4">DESCRIPTION</th>
+                            <th className="pb-3 px-4">TOTAL HOURS</th>
+                            <th className="pb-3 px-4">LABOR COST</th>
+                            <th className="pb-3 px-4 w-32">PERCENTAGE</th>
+                            <th className="pb-3 px-4 text-center">TECHNICIANS</th>
+                            <th className="pb-3 px-4 text-center">ACTIONS</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {/* Row 1 Expanded */}
+                          <tr className="hover:bg-gray-50/50 bg-blue-50/20">
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-2 text-blue-600 font-bold">
+                                <ChevronUp size={16}/> 1
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 font-bold text-gray-800">
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded bg-blue-100 text-blue-600 flex items-center justify-center"><Activity size={12}/></div>
+                                Inspection & Diagnosis
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-xs font-semibold text-gray-600">Inspect system and identify<br/>root cause of issue</td>
+                            <td className="py-4 px-4 font-bold text-gray-800">3h 00m</td>
+                            <td className="py-4 px-4 font-bold text-gray-800">$150.00</td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-gray-500 w-6">21%</span>
+                                <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                  <div className="h-full bg-blue-600" style={{width: '21%'}}></div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center justify-center">
+                                <div className="flex -space-x-2">
+                                  <div className="w-6 h-6 rounded-full border-2 border-white bg-blue-100 flex items-center justify-center text-[8px] font-bold text-blue-700 z-30">BS</div>
+                                  <div className="w-6 h-6 rounded-full border-2 border-white bg-green-100 flex items-center justify-center text-[8px] font-bold text-green-700 z-20">AW</div>
+                                  <div className="w-6 h-6 rounded-full border-2 border-white bg-yellow-100 flex items-center justify-center text-[8px] font-bold text-yellow-700 z-10">DK</div>
+                                  <div className="w-6 h-6 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[8px] font-bold text-gray-500 z-0">+1</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-center">
+                              <button className="text-gray-400 hover:text-gray-800 p-1.5 rounded-md border border-gray-200 hover:bg-white bg-white shadow-sm">
+                                <MoreVertical size={14}/>
+                              </button>
+                            </td>
+                          </tr>
+                          
+                          {/* Expanded Detail */}
+                          <tr className="bg-blue-50/20">
+                            <td colSpan={8} className="px-6 pb-6 pt-2 border-b border-gray-200">
+                              <div className="bg-white rounded-xl border border-blue-100 overflow-hidden shadow-sm">
+                                <div className="bg-blue-50 px-4 py-2 text-xs font-bold text-blue-800 flex items-center gap-2 border-b border-blue-100">
+                                  <Activity size={14}/> Activity Detail: Inspection & Diagnosis
+                                </div>
+                                <table className="w-full text-xs text-left">
+                                  <thead className="text-[9px] text-gray-400 uppercase font-bold border-b border-gray-100 bg-white">
+                                    <tr>
+                                      <th className="py-3 px-4">TECHNICIAN</th>
+                                      <th className="py-3 px-4">ROLE</th>
+                                      <th className="py-3 px-4">START TIME</th>
+                                      <th className="py-3 px-4">END TIME</th>
+                                      <th className="py-3 px-4">DURATION</th>
+                                      <th className="py-3 px-4">HOURLY RATE</th>
+                                      <th className="py-3 px-4">LABOR COST</th>
+                                      <th className="py-3 px-4">NOTES</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-gray-50 bg-white">
+                                    <tr>
+                                      <td className="py-3 px-4">
+                                        <div className="flex items-center gap-2">
+                                          <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-[8px] font-bold text-blue-700">BS</div>
+                                          <span className="font-bold text-gray-800">Budi Santoso</span>
+                                        </div>
+                                      </td>
+                                      <td className="py-3 px-4 text-gray-500 font-medium">Lead Technician</td>
+                                      <td className="py-3 px-4 font-semibold text-gray-700">May 27, 2024 08:30 AM</td>
+                                      <td className="py-3 px-4 font-semibold text-gray-700">May 27, 2024 10:00 AM</td>
+                                      <td className="py-3 px-4 font-bold text-gray-800">1h 30m</td>
+                                      <td className="py-3 px-4 font-semibold text-gray-600">$50.00</td>
+                                      <td className="py-3 px-4 font-bold text-gray-800">$75.00</td>
+                                      <td className="py-3 px-4 text-gray-500 truncate max-w-[150px]" title="Visual inspection & initial check">Visual inspection & initial check</td>
+                                    </tr>
+                                    <tr>
+                                      <td className="py-3 px-4">
+                                        <div className="flex items-center gap-2">
+                                          <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-[8px] font-bold text-green-700">AW</div>
+                                          <span className="font-bold text-gray-800">Andi Wijaya</span>
+                                        </div>
+                                      </td>
+                                      <td className="py-3 px-4 text-gray-500 font-medium">Technician</td>
+                                      <td className="py-3 px-4 font-semibold text-gray-700">May 27, 2024 08:30 AM</td>
+                                      <td className="py-3 px-4 font-semibold text-gray-700">May 27, 2024 10:00 AM</td>
+                                      <td className="py-3 px-4 font-bold text-gray-800">1h 30m</td>
+                                      <td className="py-3 px-4 font-semibold text-gray-600">$50.00</td>
+                                      <td className="py-3 px-4 font-bold text-gray-800">$75.00</td>
+                                      <td className="py-3 px-4 text-gray-500 truncate max-w-[150px]" title="Data collection & measurements">Data collection & measurements</td>
+                                    </tr>
+                                  </tbody>
+                                  <tfoot className="border-t border-gray-100 bg-gray-50/50">
+                                    <tr>
+                                      <td colSpan={4} className="py-3 px-4 text-right font-bold text-gray-500">Total:</td>
+                                      <td className="py-3 px-4 font-black text-gray-800">3h 00m</td>
+                                      <td></td>
+                                      <td className="py-3 px-4 font-black text-gray-800">$150.00</td>
+                                      <td></td>
+                                    </tr>
+                                  </tfoot>
+                                </table>
+                              </div>
+                            </td>
+                          </tr>
+
+                          {/* Row 2 */}
+                          <tr className="hover:bg-gray-50/50 cursor-pointer">
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-2 text-gray-400 font-bold hover:text-gray-800 cursor-pointer">
+                                <ChevronRight size={16}/> 2
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 font-bold text-gray-800">
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded bg-green-100 text-green-600 flex items-center justify-center"><Wrench size={12}/></div>
+                                Discharge Pressure Troubleshooting
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-xs font-semibold text-gray-600">Check components related to<br/>high discharge pressure</td>
+                            <td className="py-4 px-4 font-bold text-gray-800">4h 00m</td>
+                            <td className="py-4 px-4 font-bold text-gray-800">$180.00</td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-gray-500 w-6">29%</span>
+                                <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                  <div className="h-full bg-green-500" style={{width: '29%'}}></div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center justify-center">
+                                <div className="flex -space-x-2">
+                                  <div className="w-6 h-6 rounded-full border-2 border-white bg-blue-100 flex items-center justify-center text-[8px] font-bold text-blue-700 z-20">BS</div>
+                                  <div className="w-6 h-6 rounded-full border-2 border-white bg-green-100 flex items-center justify-center text-[8px] font-bold text-green-700 z-10">AW</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-center">
+                              <button className="text-gray-400 hover:text-gray-800 p-1.5 rounded-md border border-gray-200 hover:bg-white bg-white shadow-sm">
+                                <MoreVertical size={14}/>
+                              </button>
+                            </td>
+                          </tr>
+
+                          {/* Row 3 */}
+                          <tr className="hover:bg-gray-50/50 cursor-pointer">
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-2 text-gray-400 font-bold hover:text-gray-800 cursor-pointer">
+                                <ChevronRight size={16}/> 3
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 font-bold text-gray-800">
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded bg-yellow-100 text-yellow-600 flex items-center justify-center"><Settings size={12}/></div>
+                                Component Testing
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-xs font-semibold text-gray-600">Test sensors, valves, and<br/>control components</td>
+                            <td className="py-4 px-4 font-bold text-gray-800">3h 30m</td>
+                            <td className="py-4 px-4 font-bold text-gray-800">$157.50</td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-gray-500 w-6">25%</span>
+                                <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                  <div className="h-full bg-yellow-500" style={{width: '25%'}}></div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center justify-center">
+                                <div className="flex -space-x-2">
+                                  <div className="w-6 h-6 rounded-full border-2 border-white bg-blue-100 flex items-center justify-center text-[8px] font-bold text-blue-700 z-20">BS</div>
+                                  <div className="w-6 h-6 rounded-full border-2 border-white bg-yellow-100 flex items-center justify-center text-[8px] font-bold text-yellow-700 z-10">DK</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-center">
+                              <button className="text-gray-400 hover:text-gray-800 p-1.5 rounded-md border border-gray-200 hover:bg-white bg-white shadow-sm">
+                                <MoreVertical size={14}/>
+                              </button>
+                            </td>
+                          </tr>
+
+                          {/* Row 4 */}
+                          <tr className="hover:bg-gray-50/50 cursor-pointer">
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-2 text-gray-400 font-bold hover:text-gray-800 cursor-pointer">
+                                <ChevronRight size={16}/> 4
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 font-bold text-gray-800">
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded bg-purple-100 text-purple-600 flex items-center justify-center"><Wrench size={12}/></div>
+                                Repair & Adjustment
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-xs font-semibold text-gray-600">Adjust settings and perform<br/>necessary repairs</td>
+                            <td className="py-4 px-4 font-bold text-gray-800">2h 30m</td>
+                            <td className="py-4 px-4 font-bold text-gray-800">$112.50</td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-gray-500 w-6">18%</span>
+                                <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                  <div className="h-full bg-purple-500" style={{width: '18%'}}></div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center justify-center">
+                                <div className="flex -space-x-2">
+                                  <div className="w-6 h-6 rounded-full border-2 border-white bg-blue-100 flex items-center justify-center text-[8px] font-bold text-blue-700 z-20">BS</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-center">
+                              <button className="text-gray-400 hover:text-gray-800 p-1.5 rounded-md border border-gray-200 hover:bg-white bg-white shadow-sm">
+                                <MoreVertical size={14}/>
+                              </button>
+                            </td>
+                          </tr>
+
+                          {/* Row 5 */}
+                          <tr className="hover:bg-gray-50/50 cursor-pointer">
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-2 text-gray-400 font-bold hover:text-gray-800 cursor-pointer">
+                                <ChevronRight size={16}/> 5
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 font-bold text-gray-800">
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded bg-cyan-100 text-cyan-600 flex items-center justify-center"><CheckCircle2 size={12}/></div>
+                                System Verification
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-xs font-semibold text-gray-600">Verify system performance<br/>after repair</td>
+                            <td className="py-4 px-4 font-bold text-gray-800">1h 00m</td>
+                            <td className="py-4 px-4 font-bold text-gray-800">$25.00</td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-gray-500 w-6">7%</span>
+                                <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                  <div className="h-full bg-cyan-500" style={{width: '7%'}}></div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center justify-center">
+                                <div className="flex -space-x-2">
+                                  <div className="w-6 h-6 rounded-full border-2 border-white bg-blue-100 flex items-center justify-center text-[8px] font-bold text-blue-700 z-20">BS</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-center">
+                              <button className="text-gray-400 hover:text-gray-800 p-1.5 rounded-md border border-gray-200 hover:bg-white bg-white shadow-sm">
+                                <MoreVertical size={14}/>
+                              </button>
+                            </td>
+                          </tr>
+
+                        </tbody>
+                        <tfoot className="border-t border-gray-100 bg-gray-50/50">
+                          <tr>
+                            <td colSpan={3} className="py-4 px-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Total</td>
+                            <td className="py-4 px-4 text-sm font-black text-gray-900">14h 00m</td>
+                            <td className="py-4 px-4 text-sm font-black text-gray-900">$625.00</td>
+                            <td className="py-4 px-4 text-sm font-black text-gray-900">100%</td>
+                            <td colSpan={2}></td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto mt-4 mb-8">
+                      <table className="w-full text-sm text-left">
+                        <thead className="text-[10px] text-gray-400 uppercase font-bold border-b border-gray-100">
+                          <tr>
+                            <th className="pb-3 px-4 w-12 text-center">#</th>
+                            <th className="pb-3 px-4">TECHNICIAN</th>
+                            <th className="pb-3 px-4">ROLE</th>
+                            <th className="pb-3 px-4">START TIME</th>
+                            <th className="pb-3 px-4">END TIME</th>
+                            <th className="pb-3 px-4">BREAK</th>
+                            <th className="pb-3 px-4">TOTAL HOURS</th>
+                            <th className="pb-3 px-4">HOURLY RATE</th>
+                            <th className="pb-3 px-4">TOTAL COST</th>
+                            <th className="pb-3 px-4 text-center">STATUS</th>
+                            <th className="pb-3 px-4 text-center">ACTIONS</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          <tr className="hover:bg-gray-50/50">
+                            <td className="py-4 px-4 font-bold text-gray-400 text-center">1</td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-xs shrink-0">BS</div>
+                                <div>
+                                  <div className="font-bold text-gray-800 text-sm">Budi Santoso</div>
+                                  <div className="text-[10px] text-gray-500">Technician</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 font-semibold text-gray-600 text-xs">Lead Technician</td>
+                            <td className="py-4 px-4 text-xs font-semibold text-gray-700">May 27, 2024<br/>08:30 AM</td>
+                            <td className="py-4 px-4 text-xs font-semibold text-gray-700">May 27, 2024<br/>12:00 PM</td>
+                            <td className="py-4 px-4 font-semibold text-gray-600 text-xs">30m</td>
+                            <td className="py-4 px-4 font-bold text-gray-800">3h 00m</td>
+                            <td className="py-4 px-4 font-semibold text-gray-600 text-xs">$50.00</td>
+                            <td className="py-4 px-4 font-bold text-gray-800">$150.00</td>
+                            <td className="py-4 px-4 text-center">
+                              <span className="px-2 py-0.5 rounded border border-green-200 text-green-700 bg-green-50 text-[10px] font-bold">Completed</span>
+                            </td>
+                            <td className="py-4 px-4 text-center">
+                              <button className="text-gray-400 hover:text-gray-800 p-1.5 rounded-md border border-gray-200 hover:bg-gray-100 bg-white shadow-sm">
+                                <MoreVertical size={14}/>
+                              </button>
+                            </td>
+                          </tr>
+                          <tr className="hover:bg-gray-50/50">
+                            <td className="py-4 px-4 font-bold text-gray-400 text-center">2</td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-green-100 text-green-700 font-bold flex items-center justify-center text-xs shrink-0">AW</div>
+                                <div>
+                                  <div className="font-bold text-gray-800 text-sm">Andi Wijaya</div>
+                                  <div className="text-[10px] text-gray-500">Technician</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 font-semibold text-gray-600 text-xs">Technician</td>
+                            <td className="py-4 px-4 text-xs font-semibold text-gray-700">May 27, 2024<br/>08:30 AM</td>
+                            <td className="py-4 px-4 text-xs font-semibold text-gray-700">May 27, 2024<br/>04:30 PM</td>
+                            <td className="py-4 px-4 font-semibold text-gray-600 text-xs">1h 00m</td>
+                            <td className="py-4 px-4 font-bold text-gray-800">7h 00m</td>
+                            <td className="py-4 px-4 font-semibold text-gray-600 text-xs">$45.00</td>
+                            <td className="py-4 px-4 font-bold text-gray-800">$315.00</td>
+                            <td className="py-4 px-4 text-center">
+                              <span className="px-2 py-0.5 rounded border border-green-200 text-green-700 bg-green-50 text-[10px] font-bold">Completed</span>
+                            </td>
+                            <td className="py-4 px-4 text-center">
+                              <button className="text-gray-400 hover:text-gray-800 p-1.5 rounded-md border border-gray-200 hover:bg-gray-100 bg-white shadow-sm">
+                                <MoreVertical size={14}/>
+                              </button>
+                            </td>
+                          </tr>
+                          <tr className="hover:bg-gray-50/50">
+                            <td className="py-4 px-4 font-bold text-gray-400 text-center">3</td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-yellow-100 text-yellow-700 font-bold flex items-center justify-center text-xs shrink-0">DK</div>
+                                <div>
+                                  <div className="font-bold text-gray-800 text-sm">Dedi Kurniawan</div>
+                                  <div className="text-[10px] text-gray-500">Technician</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 font-semibold text-gray-600 text-xs">Helper</td>
+                            <td className="py-4 px-4 text-xs font-semibold text-gray-700">May 27, 2024<br/>10:00 AM</td>
+                            <td className="py-4 px-4 text-xs font-semibold text-gray-700">May 27, 2024<br/>02:30 PM</td>
+                            <td className="py-4 px-4 font-semibold text-gray-600 text-xs">30m</td>
+                            <td className="py-4 px-4 font-bold text-gray-800">4h 00m</td>
+                            <td className="py-4 px-4 font-semibold text-gray-600 text-xs">$40.00</td>
+                            <td className="py-4 px-4 font-bold text-gray-800">$160.00</td>
+                            <td className="py-4 px-4 text-center">
+                              <span className="px-2 py-0.5 rounded border border-green-200 text-green-700 bg-green-50 text-[10px] font-bold">Completed</span>
+                            </td>
+                            <td className="py-4 px-4 text-center">
+                              <button className="text-gray-400 hover:text-gray-800 p-1.5 rounded-md border border-gray-200 hover:bg-gray-100 bg-white shadow-sm">
+                                <MoreVertical size={14}/>
+                              </button>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td colSpan={11} className="p-4 bg-gray-50/50">
+                              <button className="w-full py-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 font-bold text-sm flex justify-center items-center gap-2 hover:bg-gray-100 hover:border-gray-400 hover:text-gray-700 transition-colors">
+                                <Plus size={16}/> Drag and drop or click to add more technicians
+                              </button>
+                            </td>
+                          </tr>
+                        </tbody>
+                        <tfoot className="border-t border-gray-100 bg-gray-50/50">
+                          <tr>
+                            <td colSpan={6} className="py-4 px-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Total Labor Hours</td>
+                            <td className="py-4 px-4 text-sm font-black text-gray-900">14h 00m</td>
+                            <td className="py-4 px-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Total Cost</td>
+                            <td className="py-4 px-4 text-sm font-black text-gray-900">$625.00</td>
+                            <td colSpan={2}></td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  )}
+
+                  {laborTab === 'Technician' && (
+                    <div className="p-6 border-t border-gray-100">
+                      <div className="flex justify-between items-center mb-4">
+                        <div>
+                          <h4 className="font-bold text-gray-800 text-sm">Time Logs</h4>
+                          <p className="text-[11px] text-gray-500">Detailed time log entries for this work order.</p>
+                        </div>
+                        <button className="flex items-center gap-1.5 text-blue-600 font-bold text-xs hover:underline">
+                          View Full Time Log <ExternalLink size={12}/>
+                        </button>
+                      </div>
+                      
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs text-left">
+                          <thead className="text-[9px] text-gray-400 uppercase font-bold border-b border-gray-100">
+                            <tr>
+                              <th className="pb-3">DATE</th>
+                              <th className="pb-3">TECHNICIAN</th>
+                              <th className="pb-3">DESCRIPTION</th>
+                              <th className="pb-3">START</th>
+                              <th className="pb-3">END</th>
+                              <th className="pb-3">DURATION</th>
+                              <th className="pb-3 text-center">STATUS</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-50">
+                            <tr>
+                              <td className="py-3 font-semibold text-gray-700">May 27, 2024</td>
+                              <td className="py-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[8px]">BS</div>
+                                  <span className="font-bold text-gray-800">Budi Santoso</span>
+                                </div>
+                              </td>
+                              <td className="py-3 text-gray-600">Inspection and system check</td>
+                              <td className="py-3 font-semibold text-gray-700">08:30 AM</td>
+                              <td className="py-3 font-semibold text-gray-700">10:00 AM</td>
+                              <td className="py-3 font-bold text-gray-800">1h 30m</td>
+                              <td className="py-3 text-center">
+                                <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-green-50 text-green-700 border border-green-200">Completed</span>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td className="py-3 font-semibold text-gray-700">May 27, 2024</td>
+                              <td className="py-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[8px]">BS</div>
+                                  <span className="font-bold text-gray-800">Budi Santoso</span>
+                                </div>
+                              </td>
+                              <td className="py-3 text-gray-600">Discharge pressure troubleshooting</td>
+                              <td className="py-3 font-semibold text-gray-700">10:30 AM</td>
+                              <td className="py-3 font-semibold text-gray-700">12:00 PM</td>
+                              <td className="py-3 font-bold text-gray-800">1h 30m</td>
+                              <td className="py-3 text-center">
+                                <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-green-50 text-green-700 border border-green-200">Completed</span>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td className="py-3 font-semibold text-gray-700">May 27, 2024</td>
+                              <td className="py-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-5 h-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold text-[8px]">AW</div>
+                                  <span className="font-bold text-gray-800">Andi Wijaya</span>
+                                </div>
+                              </td>
+                              <td className="py-3 text-gray-600">Component testing and verification</td>
+                              <td className="py-3 font-semibold text-gray-700">01:00 PM</td>
+                              <td className="py-3 font-semibold text-gray-700">04:30 PM</td>
+                              <td className="py-3 font-bold text-gray-800">3h 30m</td>
+                              <td className="py-3 text-center">
+                                <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-green-50 text-green-700 border border-green-200">Completed</span>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td className="py-3 font-semibold text-gray-700">May 27, 2024</td>
+                              <td className="py-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-5 h-5 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center font-bold text-[8px]">DK</div>
+                                  <span className="font-bold text-gray-800">Dedi Kurniawan</span>
+                                </div>
+                              </td>
+                              <td className="py-3 text-gray-600">Assistance and tools preparation</td>
+                              <td className="py-3 font-semibold text-gray-700">10:00 AM</td>
+                              <td className="py-3 font-semibold text-gray-700">02:30 PM</td>
+                              <td className="py-3 font-bold text-gray-800">4h 00m</td>
+                              <td className="py-3 text-center">
+                                <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-green-50 text-green-700 border border-green-200">Completed</span>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              </div>
+            </div>
+
+            {/* Right Sidebar */}
+            <div className="space-y-6">
+              
+              {/* Labor Summary */}
+              <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6">
+                <h3 className="font-bold text-gray-800 mb-6 text-sm">Labor Summary</h3>
+                
+                <div className="flex gap-4 items-center">
+                  <div className="relative w-28 h-28 flex-shrink-0">
+                    <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
+                      <circle cx="50" cy="50" r="42" fill="transparent" stroke="#f3f4f6" strokeWidth="12" />
+                      {/* Simplified segments for illustration */}
+                      {laborTab === 'Activity' ? (
+                        <>
+                          <circle cx="50" cy="50" r="42" fill="transparent" stroke="#06b6d4" strokeWidth="12" strokeDasharray="263.89" strokeDashoffset="245.4" />
+                          <circle cx="50" cy="50" r="42" fill="transparent" stroke="#a855f7" strokeWidth="12" strokeDasharray="263.89" strokeDashoffset="216.3" />
+                          <circle cx="50" cy="50" r="42" fill="transparent" stroke="#eab308" strokeWidth="12" strokeDasharray="263.89" strokeDashoffset="150.4" />
+                          <circle cx="50" cy="50" r="42" fill="transparent" stroke="#22c55e" strokeWidth="12" strokeDasharray="263.89" strokeDashoffset="73.8" />
+                          <circle cx="50" cy="50" r="42" fill="transparent" stroke="#2563eb" strokeWidth="12" strokeDasharray="263.89" strokeDashoffset="0" />
+                        </>
+                      ) : (
+                        <>
+                          <circle cx="50" cy="50" r="42" fill="transparent" stroke="#3b82f6" strokeWidth="12" strokeDasharray="263.89" strokeDashoffset="175.92" />
+                          <circle cx="50" cy="50" r="42" fill="transparent" stroke="#22c55e" strokeWidth="12" strokeDasharray="263.89" strokeDashoffset="0" />
+                        </>
+                      )}
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-xl font-black text-gray-800">14h 00m</span>
+                      <span className="text-[8px] font-bold text-gray-500 mt-0.5">Total Hours</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex-1 space-y-3">
+                    {laborTab === 'Activity' ? (
+                      <>
+                        <div className="flex justify-between items-center text-[10px]">
+                          <div className="flex items-center gap-1.5 font-semibold text-gray-700">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-600"></div> Inspection & Diagnosis
+                          </div>
+                          <div className="font-medium text-gray-500">21% (3h 00m)</div>
+                        </div>
+                        <div className="flex justify-between items-center text-[10px]">
+                          <div className="flex items-center gap-1.5 font-semibold text-gray-700">
+                            <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div> Troubleshooting
+                          </div>
+                          <div className="font-medium text-gray-500">29% (4h 00m)</div>
+                        </div>
+                        <div className="flex justify-between items-center text-[10px]">
+                          <div className="flex items-center gap-1.5 font-semibold text-gray-700">
+                            <div className="w-1.5 h-1.5 rounded-full bg-yellow-500"></div> Component Testing
+                          </div>
+                          <div className="font-medium text-gray-500">25% (3h 30m)</div>
+                        </div>
+                        <div className="flex justify-between items-center text-[10px]">
+                          <div className="flex items-center gap-1.5 font-semibold text-gray-700">
+                            <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div> Repair & Adjustment
+                          </div>
+                          <div className="font-medium text-gray-500">18% (2h 30m)</div>
+                        </div>
+                        <div className="flex justify-between items-center text-[10px]">
+                          <div className="flex items-center gap-1.5 font-semibold text-gray-700">
+                            <div className="w-1.5 h-1.5 rounded-full bg-cyan-500"></div> System Verification
+                          </div>
+                          <div className="font-medium text-gray-500">7% (1h 00m)</div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex justify-between items-center text-[10px]">
+                          <div className="flex items-center gap-1.5 font-semibold text-gray-700">
+                            <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div> Completed
+                          </div>
+                          <div className="font-medium text-gray-500">14h 00m (100%)</div>
+                        </div>
+                        <div className="flex justify-between items-center text-[10px]">
+                          <div className="flex items-center gap-1.5 font-semibold text-gray-700">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-600"></div> In Progress
+                          </div>
+                          <div className="font-medium text-gray-500">0h 00m (0%)</div>
+                        </div>
+                        <div className="flex justify-between items-center text-[10px]">
+                          <div className="flex items-center gap-1.5 font-semibold text-gray-700">
+                            <div className="w-1.5 h-1.5 rounded-full bg-yellow-500"></div> Pending
+                          </div>
+                          <div className="font-medium text-gray-500">0h 00m (0%)</div>
+                        </div>
+                        <div className="flex justify-between items-center text-[10px]">
+                          <div className="flex items-center gap-1.5 font-semibold text-gray-700">
+                            <div className="w-1.5 h-1.5 rounded-full bg-gray-400"></div> Cancelled
+                          </div>
+                          <div className="font-medium text-gray-500">0h 00m (0%)</div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Cost Breakdown */}
+              <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6">
+                <h3 className="font-bold text-gray-800 mb-4 text-sm">Cost Breakdown</h3>
+                <div className="space-y-3 text-sm border-b border-gray-100 pb-4 mb-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 font-medium">Labor Cost</span>
+                    <span className="font-bold text-gray-800">$625.00</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 font-medium">Parts Cost</span>
+                    <span className="font-bold text-gray-800">$1,400.50</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 font-medium">Other Cost</span>
+                    <span className="font-bold text-gray-800">$0.00</span>
+                  </div>
+                </div>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500 font-medium">Total Estimated Cost</span>
+                    <span className="font-bold text-gray-600">$2,025.50</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-800 font-bold">Total Actual Cost</span>
+                    <span className="font-bold text-green-600">$2,011.50</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 font-medium">Variance</span>
+                    <span className="font-bold text-green-600">-$14.00</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tips */}
+              <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6">
+                <div className="flex items-center gap-2 mb-4 text-gray-700">
+                  <Lightbulb size={16}/>
+                  <h3 className="font-bold text-sm">Tips</h3>
+                </div>
+                {laborTab === 'Activity' ? (
+                  <ul className="text-xs text-gray-600 space-y-3 list-disc pl-4">
+                    <li>Group by Activity to understand where time is spent</li>
+                    <li>Log time in real-time for accurate reporting</li>
+                    <li>Activity data will be included in the final WO report</li>
+                  </ul>
+                ) : (
+                  <ul className="text-xs text-gray-600 space-y-3 list-disc pl-4">
+                    <li>Use 'Log Time' to track ongoing work in real-time</li>
+                    <li>Labor hours will be included in the final WO report</li>
+                    <li>Ensure all time entries are accurate before closing the work order</li>
+                  </ul>
+                )}
+              </div>
+              
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

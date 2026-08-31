@@ -248,101 +248,72 @@ export default function WorkOrdersIndexPage() {
   return (
     <div className="flex flex-col h-full space-y-6 pb-12">
       
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Work Orders</h1>
-          <p className="text-sm text-gray-500 mt-1">View and manage all work orders in the system.</p>
-        </div>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
-          <Plus size={16} /> Create Work Order <ChevronDown size={14} className="ml-1 opacity-70" />
-        </button>
-      </div>
-
       {/* Stats Widgets */}
       <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
         
         {/* Total Work Orders */}
-        <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-2">
-            <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-              <ClipboardList size={20} />
-            </div>
-            <div className="text-[11px] font-bold text-gray-400 uppercase">Total Work Orders</div>
+        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+            <ClipboardList size={24} />
           </div>
-          <div className="text-left mt-2">
-            <div className="text-3xl font-black text-gray-900">256</div>
-            <div className="text-xs text-gray-500 font-medium mt-1">All time</div>
+          <div>
+            <div className="text-sm font-medium text-gray-500">Total Work Orders</div>
+            <div className="text-2xl font-bold text-gray-800">256</div>
           </div>
         </div>
 
         {/* Open */}
-        <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-2">
-            <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center">
-              <Target size={20} />
-            </div>
-            <div className="text-[11px] font-bold text-gray-400 uppercase">Open</div>
+        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
+            <Target size={24} />
           </div>
-          <div className="text-left mt-2">
-            <div className="text-3xl font-black text-gray-900">78</div>
-            <div className="text-xs text-gray-500 font-medium mt-1">30.5%</div>
+          <div>
+            <div className="text-sm font-medium text-gray-500">Open</div>
+            <div className="text-2xl font-bold text-gray-800">78</div>
           </div>
         </div>
 
         {/* In Progress */}
-        <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-2">
-            <div className="w-10 h-10 rounded-full bg-yellow-50 text-yellow-500 flex items-center justify-center">
-              <TimerReset size={20} />
-            </div>
-            <div className="text-[11px] font-bold text-gray-400 uppercase">In Progress</div>
+        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-500">
+            <TimerReset size={24} />
           </div>
-          <div className="text-left mt-2">
-            <div className="text-3xl font-black text-gray-900">46</div>
-            <div className="text-xs text-gray-500 font-medium mt-1">18.0%</div>
+          <div>
+            <div className="text-sm font-medium text-gray-500">In Progress</div>
+            <div className="text-2xl font-bold text-gray-800">46</div>
           </div>
         </div>
 
         {/* On Hold */}
-        <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-2">
-            <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
-              <PauseCircle size={20} />
-            </div>
-            <div className="text-[11px] font-bold text-gray-400 uppercase">On Hold</div>
+        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
+            <PauseCircle size={24} />
           </div>
-          <div className="text-left mt-2">
-            <div className="text-3xl font-black text-gray-900">12</div>
-            <div className="text-xs text-gray-500 font-medium mt-1">4.7%</div>
+          <div>
+            <div className="text-sm font-medium text-gray-500">On Hold</div>
+            <div className="text-2xl font-bold text-gray-800">12</div>
           </div>
         </div>
 
         {/* Completed */}
-        <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-2">
-            <div className="w-10 h-10 rounded-full bg-green-50 text-green-500 flex items-center justify-center">
-              <CheckCircle2 size={20} />
-            </div>
-            <div className="text-[11px] font-bold text-gray-400 uppercase">Completed</div>
+        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center text-green-500">
+            <CheckCircle2 size={24} />
           </div>
-          <div className="text-left mt-2">
-            <div className="text-3xl font-black text-gray-900">112</div>
-            <div className="text-xs text-gray-500 font-medium mt-1">43.8%</div>
+          <div>
+            <div className="text-sm font-medium text-gray-500">Completed</div>
+            <div className="text-2xl font-bold text-gray-800">112</div>
           </div>
         </div>
 
         {/* Overdue */}
-        <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-2">
-            <div className="w-10 h-10 rounded-full bg-red-50 text-red-500 flex items-center justify-center">
-              <Clock size={20} />
-            </div>
-            <div className="text-[11px] font-bold text-gray-400 uppercase">Overdue</div>
+        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-500">
+            <Clock size={24} />
           </div>
-          <div className="text-left mt-2">
-            <div className="text-3xl font-black text-gray-900">8</div>
-            <div className="text-xs text-gray-500 font-medium mt-1">3.1%</div>
+          <div>
+            <div className="text-sm font-medium text-gray-500">Overdue</div>
+            <div className="text-2xl font-bold text-gray-800">8</div>
           </div>
         </div>
 
@@ -399,13 +370,17 @@ export default function WorkOrdersIndexPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 mt-4 lg:mt-0 pt-4 lg:pt-0">
+          <div className="flex items-center gap-2 mt-4 lg:mt-0 pt-4 lg:pt-0 w-full lg:w-auto">
             <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors">
               <Filter size={16} /> Filters
             </button>
             <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors">
               <Download size={16} /> Export
             </button>
+            <Link href="/work-orders/create" className="flex items-center gap-2 px-4 py-2 bg-[#111827] text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors shadow-sm ml-auto lg:ml-2">
+              <Plus size={16} />
+              Add WO
+            </Link>
           </div>
         </div>
 
