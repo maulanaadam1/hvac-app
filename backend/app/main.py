@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.api import assets, users, roles, permissions, auth, settings as settings_api
+from app.api import assets, users, roles, permissions, auth, settings as settings_api, master_data
 from app.core.database import engine, SessionLocal
 from app.models.base import Base
 
@@ -61,6 +61,7 @@ app.include_router(roles.router, prefix="/api/v1/roles", tags=["roles"])
 app.include_router(permissions.router, prefix="/api/v1/permissions", tags=["permissions"])
 app.include_router(assets.router, prefix="/api/v1/assets", tags=["assets"])
 app.include_router(settings_api.router, prefix="/api/v1/settings", tags=["settings"])
+app.include_router(master_data.router, prefix="/api/v1/master-data", tags=["master-data"])
 
 @app.get("/")
 def root():

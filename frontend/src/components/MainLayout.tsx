@@ -15,6 +15,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [systemLogo, setSystemLogo] = useState<string | null>(null);
   const [automaticLogoutMinutes, setAutomaticLogoutMinutes] = useState(30);
   const [isCheckingMaintenance, setIsCheckingMaintenance] = useState(true);
   const isLoginPage = pathname === "/login";
@@ -48,6 +49,18 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       .then(res => res.json())
       .then(data => {
         setMaintenanceMode(data.maintenance_mode === true);
+        if (data.system_logo && data.system_logo.startsWith("data:image")) {
+          setSystemLogo(data.system_logo);
+          
+          // Update favicon dynamically
+          let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+          if (!link) {
+            link = document.createElement('link');
+            link.rel = 'icon';
+            document.head.appendChild(link);
+          }
+          link.href = data.system_logo;
+        }
         if (data.automatic_logout) {
           setAutomaticLogoutMinutes(data.automatic_logout);
         }
@@ -125,7 +138,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden text-gray-800 font-sans w-full">
       {/* Sidebar Component */}
-      <Sidebar isMobileOpen={isMobileSidebarOpen} onClose={() => setIsMobileSidebarOpen(false)} />
+      <Sidebar isMobileOpen={isMobileSidebarOpen} onClose={() => setIsMobileSidebarOpen(false)} systemLogo={systemLogo || undefined} />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">

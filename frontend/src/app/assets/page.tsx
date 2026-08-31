@@ -1,19 +1,47 @@
-import { Plus, Search, Filter, MoreHorizontal, ArrowUpDown, Box, PlayCircle, AlertTriangle, AlertCircle, PowerOff } from "lucide-react";
+"use client";
+import { useState, useEffect } from "react";
+import { Plus, Search, Filter, MoreHorizontal, ArrowUpDown, Box, PlayCircle, AlertTriangle, AlertCircle, PowerOff, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function AssetsPage() {
-  const assets = [
-    { id: "AHU-001", name: "Air Handling Unit", type: "AHU", equipment: "Air Handling Unit", location: "Building A / Floor 1 / Lobby", status: "Running", criticality: "High", manufacturer: "Daikin", lastMaintenance: "24 Apr 2026", lastMaintenanceAgo: "2 days ago" },
-    { id: "AHU-002", name: "Air Handling Unit", type: "AHU", equipment: "Air Handling Unit", location: "Building A / Floor 2 / Office", status: "Running", criticality: "High", manufacturer: "Daikin", lastMaintenance: "22 Apr 2026", lastMaintenanceAgo: "4 days ago" },
-    { id: "FCU-101", name: "Fan Coil Unit", type: "FCU", equipment: "Fan Coil Unit", location: "Building A / Floor 1 / Room 101", status: "Warning", criticality: "Medium", manufacturer: "Daikin", lastMaintenance: "18 Apr 2026", lastMaintenanceAgo: "8 days ago" },
-    { id: "FCU-102", name: "Fan Coil Unit", type: "FCU", equipment: "Fan Coil Unit", location: "Building A / Floor 1 / Room 102", status: "Running", criticality: "Medium", manufacturer: "Daikin", lastMaintenance: "19 Apr 2026", lastMaintenanceAgo: "7 days ago" },
-    { id: "CH-001", name: "Chiller", type: "Chiller", equipment: "Chiller", location: "Rooftop", status: "Running", criticality: "High", manufacturer: "Daikin", lastMaintenance: "21 Apr 2026", lastMaintenanceAgo: "5 days ago" },
-    { id: "CH-002", name: "Chiller", type: "Chiller", equipment: "Chiller", location: "Rooftop", status: "Warning", criticality: "High", manufacturer: "Daikin", lastMaintenance: "15 Apr 2026", lastMaintenanceAgo: "11 days ago" },
-    { id: "CT-001", name: "Cooling Tower", type: "Cooling Tower", equipment: "Cooling Tower", location: "Rooftop", status: "Running", criticality: "Medium", manufacturer: "Marley", lastMaintenance: "20 Apr 2026", lastMaintenanceAgo: "6 days ago" },
-    { id: "EF-001", name: "Exhaust Fan", type: "Exhaust Fan", equipment: "Exhaust Fan", location: "Basement", status: "Offline", criticality: "Low", manufacturer: "Panasonic", lastMaintenance: "10 Apr 2026", lastMaintenanceAgo: "16 days ago" },
-    { id: "PMP-001", name: "Water Pump", type: "Pump", equipment: "Pump", location: "Basement", status: "Running", criticality: "Medium", manufacturer: "Grundfos", lastMaintenance: "22 Apr 2026", lastMaintenanceAgo: "4 days ago" },
-    { id: "VAV-001", name: "VAV Box", type: "VAV", equipment: "VAV Box", location: "Building B / Floor 3 / Office", status: "Running", criticality: "Low", manufacturer: "TROX", lastMaintenance: "20 Apr 2026", lastMaintenanceAgo: "6 days ago" },
-  ];
+  const router = useRouter();
+  const [assets, setAssets] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchAssets = async () => {
+    setIsLoading(true);
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      const res = await fetch(`${baseUrl}/assets/`);
+      if (res.ok) {
+        setAssets(await res.json());
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAssets();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this asset?")) return;
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+    try {
+      const res = await fetch(`${baseUrl}/assets/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        fetchAssets();
+      } else {
+        alert("Failed to delete asset.");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   return (
     <div className="flex flex-col h-full space-y-6 pb-8">
@@ -98,10 +126,10 @@ export default function AssetsPage() {
             <Filter size={16} />
             More Filters
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#111827] text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors shadow-sm ml-auto lg:ml-2">
+          <Link href="/assets/create" className="flex items-center gap-2 px-4 py-2 bg-[#111827] text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors shadow-sm ml-auto lg:ml-2">
             <Plus size={16} />
             Add Asset
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -123,65 +151,76 @@ export default function AssetsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {assets.map((asset, idx) => (
-                <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
-                  <td className="px-6 py-4 font-semibold text-gray-800 whitespace-nowrap">
-                    <Link href={`/assets/${asset.id}`} className="hover:text-blue-600 transition-colors">
-                      {asset.id}
-                    </Link>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center shrink-0 text-[8px] text-gray-400 border border-gray-200">
-                        Img
+              {isLoading ? (
+                <tr><td colSpan={9} className="text-center py-8 text-gray-400">Loading assets...</td></tr>
+              ) : assets.length === 0 ? (
+                <tr><td colSpan={9} className="text-center py-8 text-gray-400">No assets found.</td></tr>
+              ) : (
+                assets.map((asset, idx) => (
+                  <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
+                    <td className="px-6 py-4 font-semibold text-gray-800 whitespace-nowrap">
+                      <Link href={`/assets/${asset.id}`} className="hover:text-blue-600 transition-colors">
+                        {asset.id}
+                      </Link>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center shrink-0 text-[8px] text-gray-400 border border-gray-200">
+                          Img
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900">{asset.name || asset.equipment}</div>
+                          <div className="text-xs text-blue-600 font-medium">{asset.type}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-semibold text-gray-900">{asset.equipment}</div>
-                        <div className="text-xs text-blue-600 font-medium">{asset.type}</div>
+                    </td>
+                    <td className="px-6 py-4 text-gray-600 text-xs">
+                      {asset.location}
+                    </td>
+                    <td className="px-6 py-4 text-gray-600 text-xs">
+                      {asset.equipment}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-semibold border
+                        ${asset.status === 'Running' ? 'bg-green-50 text-green-700 border-green-200' : ''}
+                        ${asset.status === 'Warning' ? 'bg-orange-50 text-orange-700 border-orange-200' : ''}
+                        ${asset.status === 'Offline' ? 'bg-gray-50 text-gray-600 border-gray-200' : ''}
+                      `}>
+                        {asset.status === 'Running' && <div className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></div>}
+                        {asset.status === 'Warning' && <div className="w-1.5 h-1.5 rounded-full bg-orange-500 mr-1.5"></div>}
+                        {asset.status === 'Offline' && <div className="w-1.5 h-1.5 rounded-full bg-gray-500 mr-1.5"></div>}
+                        {asset.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-semibold
+                        ${asset.criticality === 'High' ? 'text-red-600 bg-red-50' : ''}
+                        ${asset.criticality === 'Medium' ? 'text-orange-600 bg-orange-50' : ''}
+                        ${asset.criticality === 'Low' ? 'text-blue-600 bg-blue-50' : ''}
+                      `}>
+                        {asset.criticality}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-gray-600 text-xs font-medium">
+                      {asset.manufacturer}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-xs font-medium text-gray-800">{asset.lastMaintenance}</div>
+                      <div className="text-[10px] text-gray-500">{asset.lastMaintenanceAgo}</div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button onClick={() => router.push(`/assets/edit/${asset.id}`)} className="text-gray-400 hover:text-blue-600 transition-colors p-1.5 rounded-md hover:bg-blue-50">
+                          <Edit size={16} />
+                        </button>
+                        <button onClick={() => handleDelete(asset.id)} className="text-gray-400 hover:text-red-600 transition-colors p-1.5 rounded-md hover:bg-red-50">
+                          <Trash2 size={16} />
+                        </button>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-gray-600 text-xs">
-                    {asset.location}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600 text-xs">
-                    {asset.equipment}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-semibold border
-                      ${asset.status === 'Running' ? 'bg-green-50 text-green-700 border-green-200' : ''}
-                      ${asset.status === 'Warning' ? 'bg-orange-50 text-orange-700 border-orange-200' : ''}
-                      ${asset.status === 'Offline' ? 'bg-gray-50 text-gray-600 border-gray-200' : ''}
-                    `}>
-                      {asset.status === 'Running' && <div className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></div>}
-                      {asset.status === 'Warning' && <div className="w-1.5 h-1.5 rounded-full bg-orange-500 mr-1.5"></div>}
-                      {asset.status === 'Offline' && <div className="w-1.5 h-1.5 rounded-full bg-gray-500 mr-1.5"></div>}
-                      {asset.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-semibold
-                      ${asset.criticality === 'High' ? 'text-red-600 bg-red-50' : ''}
-                      ${asset.criticality === 'Medium' ? 'text-orange-600 bg-orange-50' : ''}
-                      ${asset.criticality === 'Low' ? 'text-blue-600 bg-blue-50' : ''}
-                    `}>
-                      {asset.criticality}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-600 text-xs font-medium">
-                    {asset.manufacturer}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-xs font-medium text-gray-800">{asset.lastMaintenance}</div>
-                    <div className="text-[10px] text-gray-500">{asset.lastMaintenanceAgo}</div>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <button className="text-gray-400 hover:text-gray-800 transition-colors p-1.5 rounded-md border border-gray-200 hover:bg-gray-50">
-                      <MoreHorizontal size={14} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

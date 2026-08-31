@@ -8,7 +8,7 @@ from app.models.location import Location, Floor, Building
 
 router = APIRouter()
 
-@router.get("/assets")
+@router.get("/")
 def get_assets(db: Session = Depends(get_db)):
     """Get all assets (equipment)"""
     assets = db.query(Equipment).all()
@@ -41,7 +41,7 @@ def get_assets(db: Session = Depends(get_db)):
         })
     return result
 
-@router.get("/assets/{equipment_id}")
+@router.get("/{equipment_id}")
 def get_asset(equipment_id: str, db: Session = Depends(get_db)):
     """Get a single asset by equipment_id"""
     asset = db.query(Equipment).filter(Equipment.equipment_id == equipment_id).first()
@@ -72,3 +72,13 @@ def get_asset(equipment_id: str, db: Session = Depends(get_db)):
         "status": asset.status,
         "criticality": asset.criticality
     }
+
+@router.delete("/{equipment_id}")
+def delete_asset(equipment_id: str, db: Session = Depends(get_db)):
+    """Delete a single asset"""
+    asset = db.query(Equipment).filter(Equipment.equipment_id == equipment_id).first()
+    if not asset:
+        raise HTTPException(status_code=404, detail="Asset not found")
+    db.delete(asset)
+    db.commit()
+    return {"message": "Deleted successfully"}

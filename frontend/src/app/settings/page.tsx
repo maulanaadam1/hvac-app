@@ -77,6 +77,22 @@ export default function SettingsPage() {
       setIsSaving(false);
     }
   };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 1024 * 1024 * 2) {
+        alert("File size exceeds 2MB limit.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditForm({...editForm, system_logo: reader.result as string});
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full space-y-6 pb-12">
       
@@ -245,16 +261,30 @@ export default function SettingsPage() {
                 </div>
                 <div className="flex items-center justify-between sm:w-1/2">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center text-white">
-                      {/* Logo placeholder */}
-                      <div className="w-5 h-5 border-2 border-white rounded-sm rotate-45"></div>
+                    <div className="w-10 h-10 bg-white border border-gray-200 rounded-lg flex items-center justify-center text-white overflow-hidden">
+                      {(isEditing ? editForm.system_logo : settings.system_logo)?.startsWith("data:image") ? (
+                        <img src={isEditing ? editForm.system_logo : settings.system_logo} alt="Logo" className="w-full h-full object-contain" />
+                      ) : (
+                        <div className="w-5 h-5 border-2 border-gray-800 rounded-sm rotate-45"></div>
+                      )}
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-gray-800">logo_hvac.png</div>
-                      <div className="text-[10px] text-gray-400 font-medium">PNG • 256 x 256</div>
+                      <div className="text-xs font-bold text-gray-800">
+                        {((isEditing ? editForm.system_logo : settings.system_logo)?.length > 30) 
+                          ? "custom_logo_uploaded" 
+                          : (isEditing ? editForm.system_logo : settings.system_logo)}
+                      </div>
+                      <div className="text-[10px] text-gray-400 font-medium">PNG/JPG • Max 2MB</div>
                     </div>
                   </div>
-                  <button className="px-3 py-1.5 border border-gray-200 rounded text-xs font-bold text-gray-700 hover:bg-gray-50 shadow-sm">Change</button>
+                  {isEditing ? (
+                    <label className="cursor-pointer px-3 py-1.5 border border-gray-200 rounded text-xs font-bold text-gray-700 hover:bg-gray-50 shadow-sm">
+                      Upload
+                      <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                    </label>
+                  ) : (
+                    <button className="px-3 py-1.5 border border-gray-200 rounded text-xs font-bold text-gray-700 hover:bg-gray-50 shadow-sm opacity-50 cursor-not-allowed">Change</button>
+                  )}
                 </div>
               </div>
 

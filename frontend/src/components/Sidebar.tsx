@@ -18,7 +18,8 @@ import {
   ClipboardList,
   ShieldCheck,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Database
 } from "lucide-react";
 
 function NavItem({ icon, label, href = "#", isCollapsed, onClick }: { icon: React.ReactNode, label: string, href?: string, isCollapsed: boolean, onClick?: () => void }) {
@@ -46,7 +47,7 @@ function NavItem({ icon, label, href = "#", isCollapsed, onClick }: { icon: Reac
   );
 }
 
-export default function Sidebar({ isMobileOpen, onClose }: { isMobileOpen?: boolean, onClose?: () => void }) {
+export default function Sidebar({ isMobileOpen, onClose, systemLogo }: { isMobileOpen?: boolean, onClose?: () => void, systemLogo?: string }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [userPermissions, setUserPermissions] = useState<string[]>([]);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
@@ -88,18 +89,22 @@ export default function Sidebar({ isMobileOpen, onClose }: { isMobileOpen?: bool
       >
         
         {/* Header / Logo */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-gray-800 shrink-0">
-          <div className={`flex items-center gap-2 ${isCollapsed ? 'lg:justify-center lg:w-full' : ''}`}>
+        <div className={`h-16 flex items-center border-b border-gray-800 shrink-0 ${isCollapsed ? "justify-center" : "px-4"}`}>
+          {systemLogo && systemLogo.startsWith("data:image") ? (
+            <img src={systemLogo} alt="Logo" className={`object-contain ${isCollapsed ? "w-8 h-8" : "w-8 h-8 mr-2"}`} />
+          ) : (
             <div className="w-8 h-8 rounded bg-white text-gray-900 flex items-center justify-center font-bold shrink-0">
               <LayoutDashboard size={20} />
             </div>
-            <span className={`font-bold text-white tracking-wide whitespace-nowrap overflow-hidden ${isCollapsed ? 'lg:hidden' : ''}`}>
+          )}
+          {!isCollapsed && (
+            <span className="font-bold text-white tracking-wide whitespace-nowrap overflow-hidden ml-2">
               HVAC <span className="font-light text-xs block text-gray-400">MANAGEMENT SYSTEM</span>
             </span>
-          </div>
+          )}
           {/* Mobile Close Button */}
-          {isMobileOpen && (
-            <button onClick={onClose} className="lg:hidden text-gray-400 hover:text-white">
+          {isMobileOpen && !isCollapsed && (
+            <button onClick={onClose} className="ml-auto lg:hidden text-gray-400 hover:text-white">
               <ChevronLeft size={24} />
             </button>
           )}
@@ -181,6 +186,7 @@ export default function Sidebar({ isMobileOpen, onClose }: { isMobileOpen?: bool
                 <div className={`hidden ${isCollapsed ? 'lg:block w-6 h-px bg-gray-700' : ''}`}></div>
               </div>
               <nav className="space-y-1 px-3 mb-6">
+                {isSuperAdmin && <NavItem href="/master-data" icon={<Database size={18} />} label="Master Data" isCollapsed={isCollapsed} onClick={onClose} />}
                 {hasAccess('Users') && <NavItem href="/users" icon={<Users size={18} />} label="Users" isCollapsed={isCollapsed} onClick={onClose} />}
                 {hasAccess('Roles & Permissions') && <NavItem href="/roles-permissions" icon={<Users size={18} />} label="Roles & Permissions" isCollapsed={isCollapsed} onClick={onClose} />}
                 {hasAccess('Settings') && <NavItem href="/settings" icon={<Settings size={18} />} label="Settings" isCollapsed={isCollapsed} onClick={onClose} />}

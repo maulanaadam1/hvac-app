@@ -1,4 +1,4 @@
-from sqlalchemy import String, Boolean, Integer
+from sqlalchemy import String, Boolean, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import BaseModel
 
@@ -8,7 +8,7 @@ class SystemSetting(BaseModel):
     setting_id: Mapped[str] = mapped_column(String(50), nullable=False, unique=True, default="general")
     
     system_name: Mapped[str] = mapped_column(String(255), default="HVAC Management System")
-    system_logo: Mapped[str] = mapped_column(String(500), default="logo_hvac.png")
+    system_logo: Mapped[str] = mapped_column(Text, default="logo_hvac.png")
     timezone: Mapped[str] = mapped_column(String(100), default="Asia/Jakarta")
     date_format: Mapped[str] = mapped_column(String(50), default="DD MMM YYYY")
     time_format: Mapped[str] = mapped_column(String(50), default="24-Hour")

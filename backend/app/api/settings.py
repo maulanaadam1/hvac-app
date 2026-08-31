@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from pydantic import BaseModel
 from typing import Optional
 
@@ -25,6 +26,13 @@ class GeneralSettingsUpdate(BaseModel):
 
 @router.get("/general")
 def get_general_settings(db: Session = Depends(get_db)):
+    # Auto-migrate system_logo column to TEXT (to support large Base64 images)
+    try:
+        db.execute(text("ALTER TABLE system_settings ALTER COLUMN system_logo TYPE TEXT"))
+        db.commit()
+    except Exception:
+        db.rollback()
+
     setting = db.query(SystemSetting).filter(SystemSetting.setting_id == "general").first()
     if not setting:
         setting = SystemSetting(setting_id="general")
