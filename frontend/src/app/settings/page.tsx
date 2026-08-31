@@ -12,6 +12,7 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [settings, setSettings] = useState({
     system_name: "HVAC Management System",
+    system_logo: "",
     timezone: "Asia/Jakarta",
     date_format: "DD MMM YYYY",
     time_format: "24-Hour",
